@@ -16,6 +16,11 @@ export const errorHandler = (err, req, res, next) => {
     return res.status(404).json({ error: 'Resource not found' });
   }
 
-  // 기본 서버 오류 처리
-  res.status(500).json({ error: 'Internal Server Error' });
+  const status = err.statusCode || 500;
+  const payload =
+    process.env.NODE_ENV === 'production'
+      ? { error: 'Internal Server Error' }
+      : { error: err.message, code: err.code };
+
+  res.status(status).json(payload);
 };

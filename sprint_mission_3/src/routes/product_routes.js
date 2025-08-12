@@ -2,7 +2,10 @@
 
 import express from 'express';
 import * as productController from '../controllers/product_controller.js';
-import { validateProduct } from '../middlewares/validation.js';
+import {
+  validateProduct,
+  validateProductPatch,
+} from '../middlewares/validation.js';
 
 const router = express.Router();
 
@@ -14,7 +17,6 @@ router
 router
   .route('/:id')
   .get(productController.getProductById)
-  .patch(validateProduct, productController.updateProduct)
+  .patch(validateProductPatch, productController.updateProduct)
   .delete(productController.deleteProduct);
-
 export default router;

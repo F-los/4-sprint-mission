@@ -23,23 +23,31 @@ export const createProduct = async (req, res, next) => {
 // 상품 목록 조회 API
 export const getAllProducts = async (req, res, next) => {
   try {
-    const { q, sort = 'recent', offset = 0, limit = 10 } = req.query;
-    const where = q
+    const offset = Math.max(0, parseInt(req.query.offset ?? '0', 10) || 0);
+    const limitRaw = parseInt(req.query.limit ?? '10', 10);
+    const limit = Math.min(50, Math.max(1, limitRaw || 10)); // 1~50로 클램프
+    const search = (req.query.search ?? '').trim();
+    const sort = req.query.sort;
+
+    const where = search
       ? {
           OR: [
-            { name: { contains: q, mode: 'insensitive' } },
-            { description: { contains: q, mode: 'insensitive' } },
+            { name: { contains: search, mode: 'insensitive' } },
+            { description: { contains: search, mode: 'insensitive' } },
           ],
         }
-      : {};
+      : undefined;
+
+    const orderBy = sort === 'recent' ? { createdAt: 'desc' } : undefined;
 
     const products = await prisma.product.findMany({
+      skip: offset,
+      take: limit,
       where,
-      orderBy: { createdAt: sort === 'recent' ? 'desc' : 'asc' },
-      skip: parseInt(offset),
-      take: parseInt(limit),
+      orderBy,
       select: { id: true, name: true, price: true, createdAt: true },
     });
+
     res.json(products);
   } catch (err) {
     next(err);
@@ -49,8 +57,12 @@ export const getAllProducts = async (req, res, next) => {
 // 상품 상세 조회 API
 export const getProductById = async (req, res, next) => {
   try {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ error: 'Invalid id' });
+    }
     const product = await prisma.product.findUnique({
-      where: { id: parseInt(req.params.id) },
+      where: { id },
       select: {
         id: true,
         name: true,
@@ -58,6 +70,7 @@ export const getProductById = async (req, res, next) => {
         price: true,
         tags: true,
         createdAt: true,
+        imageUrl: true,
       },
     });
     if (!product) return res.status(404).json({ error: 'Product not found' });
