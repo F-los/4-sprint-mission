@@ -109,4 +109,3 @@ export const deleteProduct = async (req, res, next) => {
         next(err);
     }
 };
-//# sourceMappingURL=product.controller.js.map

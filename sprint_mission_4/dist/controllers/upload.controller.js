@@ -6,4 +6,3 @@ export const uploadImage = (req, res) => {
     const imagePath = `/uploads/${req.file.filename}`;
     res.status(201).json({ imageUrl: imagePath });
 };
-//# sourceMappingURL=upload.controller.js.map

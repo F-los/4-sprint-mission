@@ -13,4 +13,3 @@ router
     .patch(validateArticlePatch, articleController.updateArticle)
     .delete(articleController.deleteArticle);
 export default router;
-//# sourceMappingURL=article.routes.js.map

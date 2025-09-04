@@ -3,4 +3,3 @@ const prisma = new PrismaClient({
     log: ['query', 'error', 'warn'],
 });
 export default prisma;
-//# sourceMappingURL=client.js.map

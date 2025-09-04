@@ -5,4 +5,3 @@ import { uploadImage } from '../controllers/upload.controller.js';
 const router = express.Router();
 router.post('/', multer.single('image'), uploadImage);
 export default router;
-//# sourceMappingURL=upload.routes.js.map

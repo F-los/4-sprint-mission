@@ -114,4 +114,3 @@ export const deleteArticle = async (req, res, next) => {
         next(err);
     }
 };
-//# sourceMappingURL=article.controller.js.map

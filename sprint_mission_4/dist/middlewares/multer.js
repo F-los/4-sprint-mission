@@ -27,4 +27,3 @@ const fileFilter = (req, file, cb) => {
     }
 };
 export default multer({ storage, fileFilter });
-//# sourceMappingURL=multer.js.map

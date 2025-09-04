@@ -19,4 +19,3 @@ app.use('/upload', uploadRoutes);
 // 에러 핸들러
 app.use(errorHandler);
 export default app;
-//# sourceMappingURL=app.js.map

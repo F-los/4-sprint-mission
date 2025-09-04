@@ -20,4 +20,3 @@ export const errorHandler = (err, req, res, next) => {
         : { error: err.message, code: err.code };
     res.status(status).json(payload);
 };
-//# sourceMappingURL=errorHandler.js.map

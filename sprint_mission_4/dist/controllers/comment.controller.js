@@ -90,4 +90,3 @@ export const deleteComment = async (req, res, next) => {
         next(err);
     }
 };
-//# sourceMappingURL=comment.controller.js.map

@@ -13,4 +13,3 @@ router
     .patch(validateProductPatch, productController.updateProduct)
     .delete(productController.deleteProduct);
 export default router;
-//# sourceMappingURL=product.routes.js.map

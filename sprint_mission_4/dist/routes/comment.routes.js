@@ -18,4 +18,3 @@ router
     .patch(commentController.updateComment)
     .delete(commentController.deleteComment);
 export default router;
-//# sourceMappingURL=comment.routes.js.map

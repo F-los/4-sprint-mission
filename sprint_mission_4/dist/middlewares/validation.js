@@ -42,4 +42,3 @@ export const validateArticlePatch = (req, res, next) => {
     }
     next();
 };
-//# sourceMappingURL=validation.js.map
