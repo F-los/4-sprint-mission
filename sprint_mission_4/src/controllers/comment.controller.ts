@@ -1,7 +1,9 @@
 // src/controllers/comment.controller.js
+import { Request, Response, NextFunction } from 'express';
 import prisma from '../prisma/client.js';
+import { CreateCommentRequest, UpdateCommentRequest } from '../types/index.js';
 
-export const createProductComment = async (req, res, next) => {
+export const createProductComment = async (req: Request<{ productId: string }, {}, CreateCommentRequest>, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { content } = req.body;
     const comment = await prisma.comment.create({
@@ -16,7 +18,7 @@ export const createProductComment = async (req, res, next) => {
   }
 };
 
-export const createArticleComment = async (req, res, next) => {
+export const createArticleComment = async (req: Request<{ articleId: string }, {}, CreateCommentRequest>, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { content } = req.body;
     const comment = await prisma.comment.create({
@@ -31,14 +33,14 @@ export const createArticleComment = async (req, res, next) => {
   }
 };
 
-export const getProductComments = async (req, res, next) => {
+export const getProductComments = async (req: Request<{ productId: string }>, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { cursor, limit = 10 } = req.query;
     const comments = await prisma.comment.findMany({
       where: { productId: parseInt(req.params.productId) },
       orderBy: { createdAt: 'desc' },
-      take: parseInt(limit),
-      ...(cursor && { skip: 1, cursor: { id: parseInt(cursor) } }),
+      take: parseInt(limit as string),
+      ...(cursor && { skip: 1, cursor: { id: parseInt(cursor as string) } }),
       select: { id: true, content: true, createdAt: true },
     });
     res.json(comments);
@@ -47,14 +49,14 @@ export const getProductComments = async (req, res, next) => {
   }
 };
 
-export const getArticleComments = async (req, res, next) => {
+export const getArticleComments = async (req: Request<{ articleId: string }>, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { cursor, limit = 10 } = req.query;
     const comments = await prisma.comment.findMany({
       where: { articleId: parseInt(req.params.articleId) },
       orderBy: { createdAt: 'desc' },
-      take: parseInt(limit),
-      ...(cursor && { skip: 1, cursor: { id: parseInt(cursor) } }),
+      take: parseInt(limit as string),
+      ...(cursor && { skip: 1, cursor: { id: parseInt(cursor as string) } }),
       select: { id: true, content: true, createdAt: true },
     });
     res.json(comments);
@@ -63,28 +65,30 @@ export const getArticleComments = async (req, res, next) => {
   }
 };
 
-export const updateComment = async (req, res, next) => {
+export const updateComment = async (req: Request<{ id: string }, {}, UpdateCommentRequest>, res: Response, next: NextFunction): Promise<void> => {
   try {
     const updated = await prisma.comment.update({
       where: { id: parseInt(req.params.id) },
       data: req.body,
     });
     res.json(updated);
-  } catch (err) {
+  } catch (err: any) {
     if (err.code === 'P2025') {
-      return res.status(404).json({ error: 'Comment not found' });
+      res.status(404).json({ error: 'Comment not found' });
+      return;
     }
     next(err);
   }
 };
 
-export const deleteComment = async (req, res, next) => {
+export const deleteComment = async (req: Request<{ id: string }>, res: Response, next: NextFunction): Promise<void> => {
   try {
     await prisma.comment.delete({ where: { id: parseInt(req.params.id) } });
     res.status(204).send();
-  } catch (err) {
+  } catch (err: any) {
     if (err.code === 'P2025') {
-      return res.status(404).json({ error: 'Comment not found' });
+      res.status(404).json({ error: 'Comment not found' });
+      return;
     }
     next(err);
   }
