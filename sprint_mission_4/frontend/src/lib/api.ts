@@ -72,6 +72,9 @@ export const authAPI = {
   
   getMyLikedProducts: () =>
     api.get('/users/me/liked-products'),
+  
+  getMyArticles: () =>
+    api.get('/users/me/articles'),
 };
 
 // Product API
@@ -116,10 +119,16 @@ export const articleAPI = {
 // Comment API
 export const commentAPI = {
   createForProduct: (productId: number, data: { content: string }) =>
-    api.post(`/products/${productId}/comments`, data),
+    api.post(`/comments/product/${productId}`, data),
   
   createForArticle: (articleId: number, data: { content: string }) =>
-    api.post(`/articles/${articleId}/comments`, data),
+    api.post(`/comments/article/${articleId}`, data),
+  
+  getForProduct: (productId: number) =>
+    api.get(`/comments/product/${productId}`),
+  
+  getForArticle: (articleId: number) =>
+    api.get(`/comments/article/${articleId}`),
   
   update: (id: number, data: { content: string }) =>
     api.patch(`/comments/${id}`, data),

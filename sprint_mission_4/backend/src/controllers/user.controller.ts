@@ -261,3 +261,22 @@ export const getMyLikedProducts = async (req: AuthRequest, res: Response): Promi
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
+
+export const getMyArticles = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const articles = await prisma.article.findMany({
+      where: { userId: req.user!.id },
+      include: {
+        _count: {
+          select: { comments: true, likes: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    res.json(articles);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+};
