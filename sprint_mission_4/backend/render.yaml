@@ -3,7 +3,7 @@ services:
     name: sprint-mission-4-backend
     env: node
     buildCommand: npm install && npm run build
-    startCommand: npm run deploy && npm start
+    startCommand: npm run deploy:full && npm start
     plan: free
     envVars:
       - key: NODE_ENV
