@@ -44,6 +44,16 @@ app.use('/upload', uploadRoutes);
 app.use('/users', userRoutes);
 
 // 에러 핸들러
-app.use(errorHandler);
+app.use(
+  express.json({
+    verify: (_req, _res, buf) => {
+      try {
+        JSON.parse(buf.toString());
+      } catch (e) {
+        throw new SyntaxError('Invalid JSON format'); // 커스텀 에러로 변환
+      }
+    },
+  }),
+);
 
 export default app;
