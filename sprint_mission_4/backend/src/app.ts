@@ -10,8 +10,18 @@ import { errorHandler } from './middlewares/errorHandler.js';
 
 const app: Application = express();
 
+// CORS 설정
+const corsOptions = {
+  origin: [
+    'http://localhost:3001', // 개발 환경
+    'https://4-sprint-mission.vercel.app' // 프로덕션 환경
+  ],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
 // 기본 미들웨어
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use('/uploads', express.static('public/uploads'));
 
