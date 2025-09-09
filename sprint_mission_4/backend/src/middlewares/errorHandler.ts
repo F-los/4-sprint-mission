@@ -6,7 +6,7 @@ interface CustomError extends Error {
   code?: string;
 }
 
-export const errorHandler = (err: CustomError, req: Request, res: Response, next: NextFunction): void => {
+export const errorHandler = (err: CustomError, _req: Request, res: Response, next: NextFunction): void => {
   console.error('Error:', err);
 
   if (res.headersSent) {

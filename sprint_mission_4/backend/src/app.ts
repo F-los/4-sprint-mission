@@ -14,24 +14,26 @@ const app: Application = express();
 const corsOptions = {
   origin: [
     'http://localhost:3001', // 개발 환경
-    'https://4-sprint-mission.vercel.app' // 프로덕션 환경
+    'https://4-sprint-mission.vercel.app', // 프로덕션 환경
   ],
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
 };
 
 // 기본 미들웨어
 app.use(cors(corsOptions));
-app.use(express.json({
-  verify: (req, res, buf) => {
-    try {
-      JSON.parse(buf.toString());
-    } catch (e) {
-      res.status(400).json({ error: 'Invalid JSON format' });
-      throw new Error('Invalid JSON');
-    }
-  }
-}));
+app.use(
+  express.json({
+    verify: (_req, _res, buf) => {
+      try {
+        JSON.parse(buf.toString());
+      } catch (e) {
+        // Throwing an error here will be caught by the error handler middleware below
+        throw new SyntaxError('Invalid JSON format');
+      }
+    },
+  }),
+);
 app.use('/uploads', express.static('public/uploads'));
 
 // 라우터 연결
