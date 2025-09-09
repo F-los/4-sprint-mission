@@ -51,7 +51,11 @@ export default function Articles() {
     }
 
     try {
-      const response = await fetch(`http://localhost:3000/articles/${articleId}/like`, {
+      const API_BASE_URL = process.env.NODE_ENV === 'production' 
+        ? 'https://sprint-mission-4-backend.onrender.com'
+        : 'http://localhost:3000';
+      
+      const response = await fetch(`${API_BASE_URL}/articles/${articleId}/like`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
