@@ -22,7 +22,16 @@ const corsOptions = {
 
 // 기본 미들웨어
 app.use(cors(corsOptions));
-app.use(express.json());
+app.use(express.json({
+  verify: (req, res, buf) => {
+    try {
+      JSON.parse(buf.toString());
+    } catch (e) {
+      res.status(400).json({ error: 'Invalid JSON format' });
+      throw new Error('Invalid JSON');
+    }
+  }
+}));
 app.use('/uploads', express.static('public/uploads'));
 
 // 라우터 연결

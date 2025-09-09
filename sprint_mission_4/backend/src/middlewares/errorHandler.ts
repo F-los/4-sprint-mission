@@ -14,6 +14,12 @@ export const errorHandler = (err: CustomError, req: Request, res: Response, next
     return;
   }
 
+  // JSON 파싱 오류 처리
+  if (err instanceof SyntaxError && 'body' in err) {
+    res.status(400).json({ error: 'Invalid JSON format' });
+    return;
+  }
+
   // Multer 파일 필터 오류
   if (err instanceof Error && err.message.includes('Only jpeg/png images')) {
     res.status(400).json({ error: err.message });
