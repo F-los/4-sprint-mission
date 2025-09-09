@@ -8,7 +8,14 @@
       "mcp__ide__getDiagnostics",
       "Bash(for file in src/routes/*.ts)",
       "Bash(do sed -i '' 's/\\.js/\\.ts/g' \"$file\")",
-      "Bash(npm run typecheck:*)"
+      "Bash(npm run typecheck:*)",
+      "Bash(npm install jsonwebtoken bcryptjs)",
+      "Bash(npm install:*)",
+      "Bash(npx prisma migrate dev:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npx create-next-app:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []
