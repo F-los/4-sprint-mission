@@ -37,14 +37,16 @@ export default function Register() {
     }
 
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { confirmPassword, ...registerData } = formData;
       const response = await authAPI.register(registerData);
 
       alert(`회원가입 성공! ${response.data.nickname}님 환영합니다. 로그인 페이지로 이동합니다.`);
       router.push('/login');
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const apiError = error as { response?: { data?: { message?: string } } };
       console.error('회원가입 실패:', error);
-      setError(error.response?.data?.message || '회원가입에 실패했습니다.');
+      setError(apiError.response?.data?.message || '회원가입에 실패했습니다.');
     } finally {
       setLoading(false);
     }

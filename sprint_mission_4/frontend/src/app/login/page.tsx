@@ -37,9 +37,10 @@ export default function Login() {
 
       alert(`로그인 성공! ${user.nickname}님 환영합니다.`);
       router.push('/');
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const apiError = error as { response?: { data?: { message?: string } } };
       console.error('로그인 실패:', error);
-      setError(error.response?.data?.message || '로그인에 실패했습니다.');
+      setError(apiError.response?.data?.message || '로그인에 실패했습니다.');
     } finally {
       setLoading(false);
     }

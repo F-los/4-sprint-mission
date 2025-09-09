@@ -1,21 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { authAPI } from '@/lib/api';
-
-interface UserInfo {
-  id: number;
-  email: string;
-  nickname: string;
-  image?: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import { User } from '@/types';
 
 export default function UserInfo() {
-  const [user, setUser] = useState<UserInfo | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -31,11 +23,7 @@ export default function UserInfo() {
   const [updateLoading, setUpdateLoading] = useState(false);
   const router = useRouter();
 
-  useEffect(() => {
-    loadUserInfo();
-  }, []);
-
-  const loadUserInfo = async () => {
+  const loadUserInfo = useCallback(async () => {
     try {
       const token = localStorage.getItem('accessToken');
       if (!token) {
@@ -49,22 +37,27 @@ export default function UserInfo() {
         nickname: response.data.nickname,
         image: response.data.image || '',
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const apiError = error as { response?: { status?: number } };
       console.error('사용자 정보 로드 실패:', error);
-      if (error.response?.status === 401) {
+      if (apiError.response?.status === 401) {
         router.push('/login');
       }
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    loadUserInfo();
+  }, [loadUserInfo]);
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setUpdateLoading(true);
     
     try {
-      const updateData: any = {};
+      const updateData: { nickname?: string; image?: string } = {};
       if (profileData.nickname !== user?.nickname) {
         updateData.nickname = profileData.nickname;
       }
@@ -82,9 +75,10 @@ export default function UserInfo() {
       alert('프로필이 성공적으로 업데이트되었습니다.');
       setIsEditing(false);
       loadUserInfo();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const apiError = error as { response?: { data?: { message?: string } } };
       console.error('프로필 업데이트 실패:', error);
-      alert(error.response?.data?.message || '프로필 업데이트에 실패했습니다.');
+      alert(apiError.response?.data?.message || '프로필 업데이트에 실패했습니다.');
     } finally {
       setUpdateLoading(false);
     }
@@ -113,9 +107,10 @@ export default function UserInfo() {
       alert('비밀번호가 성공적으로 변경되었습니다.');
       setIsChangingPassword(false);
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const apiError = error as { response?: { data?: { message?: string } } };
       console.error('비밀번호 변경 실패:', error);
-      alert(error.response?.data?.message || '비밀번호 변경에 실패했습니다.');
+      alert(apiError.response?.data?.message || '비밀번호 변경에 실패했습니다.');
     } finally {
       setUpdateLoading(false);
     }

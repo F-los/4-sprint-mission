@@ -1,40 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { productAPI, authAPI, articleAPI } from '@/lib/api';
-
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  createdAt: string;
-  likeCount: number;
-  commentCount: number;
-  isLiked: boolean;
-}
-
-interface Article {
-  id: number;
-  title: string;
-  content: string;
-  createdAt: string;
-  likeCount: number;
-  commentCount: number;
-  isLiked: boolean;
-}
+import { User, Product, Article } from '@/types';
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [articles, setArticles] = useState<Article[]>([]);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       // 토큰이 있으면 사용자 정보 로드
       const token = localStorage.getItem('accessToken');
@@ -59,7 +36,11 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleLike = async (productId: number) => {
     if (!user) {
@@ -483,7 +464,7 @@ export default function Home() {
               <h4 className="font-semibold text-yellow-800 mb-2">🚀 테스트 추천 순서</h4>
               <ol className="text-sm text-yellow-700 space-y-1">
                 <li><strong>1.</strong> 회원가입 → 로그인하여 토큰 인증 확인</li>
-                <li><strong>2.</strong> "내 정보" 페이지에서 프로필 수정/비밀번호 변경</li>
+                <li><strong>2.</strong> &quot;내 정보&quot; 페이지에서 프로필 수정/비밀번호 변경</li>
                 <li><strong>3.</strong> 상품 등록 → 본인 상품 수정/삭제 → 댓글 작성</li>
                 <li><strong>4.</strong> 게시글 작성 → 좋아요 → 댓글 시스템 테스트</li>
                 <li><strong>5.</strong> 마이페이지에서 내 활동 현황 확인</li>

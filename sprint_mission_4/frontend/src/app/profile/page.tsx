@@ -3,29 +3,10 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { authAPI } from '@/lib/api';
-
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  createdAt: string;
-  likeCount: number;
-  commentCount: number;
-}
-
-interface Article {
-  id: number;
-  title: string;
-  content: string;
-  createdAt: string;
-  _count: {
-    likes: number;
-    comments: number;
-  };
-}
+import { User, Product, Article } from '@/types';
 
 export default function Profile() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [myProducts, setMyProducts] = useState<Product[]>([]);
   const [likedProducts, setLikedProducts] = useState<Product[]>([]);
   const [myArticles, setMyArticles] = useState<Article[]>([]);
@@ -78,8 +59,9 @@ export default function Profile() {
       alert('프로필이 업데이트되었습니다.');
       setIsEditing(false);
       loadData();
-    } catch (error: any) {
-      alert(error.response?.data?.message || '프로필 업데이트에 실패했습니다.');
+    } catch (error: unknown) {
+      const apiError = error as { response?: { data?: { message?: string } } };
+      alert(apiError.response?.data?.message || '프로필 업데이트에 실패했습니다.');
     }
   };
 
@@ -99,8 +81,9 @@ export default function Profile() {
       alert('비밀번호가 변경되었습니다.');
       setIsChangingPassword(false);
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-    } catch (error: any) {
-      alert(error.response?.data?.message || '비밀번호 변경에 실패했습니다.');
+    } catch (error: unknown) {
+      const apiError = error as { response?: { data?: { message?: string } } };
+      alert(apiError.response?.data?.message || '비밀번호 변경에 실패했습니다.');
     }
   };
 
@@ -427,7 +410,7 @@ export default function Profile() {
                           }
                         </p>
                         <div className="flex justify-between items-center text-sm text-gray-500">
-                          <span>❤️ {article._count.likes} 💬 {article._count.comments}</span>
+                          <span>❤️ {article._count?.likes || article.likeCount} 💬 {article._count?.comments || article.commentCount}</span>
                           <span>{new Date(article.createdAt).toLocaleDateString()}</span>
                         </div>
                       </div>
