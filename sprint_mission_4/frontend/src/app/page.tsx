@@ -65,23 +65,10 @@ export default function Home() {
     }
 
     try {
-      const API_BASE_URL = process.env.NODE_ENV === 'production' 
-        ? 'https://sprint-mission-4-backend.onrender.com'
-        : 'http://localhost:3000';
-        
-      const response = await fetch(`${API_BASE_URL}/articles/${articleId}/like`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        // 게시글 목록 새로고침
-        const articlesResponse = await articleAPI.getAll({ limit: 6 });
-        setArticles(articlesResponse.data);
-      }
+      await articleAPI.toggleLike(articleId);
+      // 게시글 목록 새로고침
+      const articlesResponse = await articleAPI.getAll({ limit: 6 });
+      setArticles(articlesResponse.data);
     } catch (error) {
       console.error('좋아요 실패:', error);
     }

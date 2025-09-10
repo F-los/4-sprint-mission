@@ -116,6 +116,9 @@ export const articleAPI = {
   
   delete: (id: number) =>
     api.delete(`/articles/${id}`),
+  
+  toggleLike: (id: number) =>
+    api.post(`/articles/${id}/like`),
 };
 
 // Comment API
