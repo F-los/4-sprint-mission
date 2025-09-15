@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 
+const MAX_POSTGRES_INT = 2147483647;
+
 export const validateProduct = (req: Request, res: Response, next: NextFunction): void => {
   const { name, description, price } = req.body;
   if (!name || !description || price == null) {
@@ -8,6 +10,10 @@ export const validateProduct = (req: Request, res: Response, next: NextFunction)
   }
   if (typeof price !== 'number' || price < 0) {
     res.status(400).json({ error: 'Price must be a non-negative number' });
+    return;
+  }
+  if (price > MAX_POSTGRES_INT) {
+    res.status(400).json({ error: 'Price exceeds maximum allowed value' });
     return;
   }
   next();
@@ -27,6 +33,10 @@ export const validateProductPatch = (req: Request, res: Response, next: NextFunc
   }
   if (price != null && (typeof price !== 'number' || price < 0)) {
     res.status(400).json({ error: 'Price must be a non-negative number' });
+    return;
+  }
+  if (price != null && price > MAX_POSTGRES_INT) {
+    res.status(400).json({ error: 'Price exceeds maximum allowed value' });
     return;
   }
   next();

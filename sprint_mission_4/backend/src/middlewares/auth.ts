@@ -1,16 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import prisma from '../prisma/client.js';
+import { JWT_SECRET } from '../config/constants.js';
+import { JWTPayload, AuthRequest } from '../types/auth.js';
 
-interface AuthRequest extends Request {
-  user?: {
-    id: number;
-    email: string;
-    nickname: string;
-  };
-}
+interface AuthRequestExtended extends Request, AuthRequest {}
 
-export const authenticateToken = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+export const authenticateToken = async (req: AuthRequestExtended, res: Response, next: NextFunction): Promise<void> => {
   console.log('authenticateToken called for:', req.method, req.url);
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -23,7 +19,7 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
   }
 
   try {
-    const decoded = jwt.verify(token, process.env['JWT_SECRET']!) as any;
+    const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload;
     console.log('Token decoded successfully, userId:', decoded.userId);
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
@@ -46,7 +42,7 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
   }
 };
 
-export const optionalAuth = async (req: AuthRequest, _res: Response, next: NextFunction): Promise<void> => {
+export const optionalAuth = async (req: AuthRequestExtended, _res: Response, next: NextFunction): Promise<void> => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
@@ -56,7 +52,7 @@ export const optionalAuth = async (req: AuthRequest, _res: Response, next: NextF
   }
 
   try {
-    const decoded = jwt.verify(token, process.env['JWT_SECRET']!) as any;
+    const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload;
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
       select: { id: true, email: true, nickname: true }
