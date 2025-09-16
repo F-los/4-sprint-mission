@@ -26,11 +26,11 @@ export default function Home() {
 
       // 상품 목록 로드
       const productsResponse = await productAPI.getAll({ limit: 6 });
-      setProducts(productsResponse.data);
+      setProducts(productsResponse.data.list || []);
 
       // 게시글 목록 로드
       const articlesResponse = await articleAPI.getAll({ limit: 6 });
-      setArticles(articlesResponse.data);
+      setArticles(articlesResponse.data.list || []);
     } catch (error) {
       console.error('데이터 로드 실패:', error);
     } finally {
@@ -52,7 +52,7 @@ export default function Home() {
       await productAPI.toggleLike(productId);
       // 상품 목록 새로고침
       const response = await productAPI.getAll({ limit: 6 });
-      setProducts(response.data);
+      setProducts(response.data.list || []);
     } catch (error) {
       console.error('좋아요 실패:', error);
     }
@@ -68,7 +68,7 @@ export default function Home() {
       await articleAPI.toggleLike(articleId);
       // 게시글 목록 새로고침
       const articlesResponse = await articleAPI.getAll({ limit: 6 });
-      setArticles(articlesResponse.data);
+      setArticles(articlesResponse.data.list || []);
     } catch (error) {
       console.error('좋아요 실패:', error);
     }
@@ -95,7 +95,7 @@ export default function Home() {
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <h1 className="text-xl font-bold text-gray-900">Sprint Mission 5 테스트 (새 배포)</h1>
+            <h1 className="text-xl font-bold text-gray-900">Sprint Mission 5</h1>
             <div className="flex items-center space-x-4">
               {user ? (
                 <div className="flex items-center space-x-4">
