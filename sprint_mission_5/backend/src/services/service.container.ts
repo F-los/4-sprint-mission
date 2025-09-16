@@ -58,6 +58,14 @@ export class ServiceContainer {
     return this.commentService;
   }
 
+  getProductRepository(): ProductRepository {
+    return this.productRepository;
+  }
+
+  getArticleRepository(): ArticleRepository {
+    return this.articleRepository;
+  }
+
   async disconnect(): Promise<void> {
     await this.prisma.$disconnect();
   }

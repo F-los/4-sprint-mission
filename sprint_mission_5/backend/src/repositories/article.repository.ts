@@ -132,4 +132,36 @@ export class ArticleRepository {
     });
     return article?.userId === userId;
   }
+
+  async findByUserId(userId: number): Promise<{ list: ArticleResponseDto[]; totalCount: number }> {
+    const articles = await this.prisma.article.findMany({
+      where: { userId },
+      include: {
+        user: {
+          select: {
+            nickname: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const articlesWithCounts = await Promise.all(
+      articles.map(async (article) => ({
+        ...article,
+        likeCount: await this.prisma.like.count({
+          where: { articleId: article.id },
+        }),
+        commentCount: await this.prisma.comment.count({
+          where: { articleId: article.id },
+        }),
+        isLiked: false, // 자신의 게시글이므로 기본적으로 false
+      })),
+    );
+
+    return {
+      list: articlesWithCounts,
+      totalCount: articles.length,
+    };
+  }
 }

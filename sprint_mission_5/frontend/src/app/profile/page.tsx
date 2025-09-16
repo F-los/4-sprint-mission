@@ -37,29 +37,14 @@ export default function Profile() {
         image: userResponse.data.image || '',
       });
 
-      try {
-        const myProductsResponse = await authAPI.getMyProducts();
-        setMyProducts(myProductsResponse.data || []);
-      } catch (error) {
-        console.log('내 상품 조회 미구현:', error);
-        setMyProducts([]);
-      }
+      const myProductsResponse = await authAPI.getMyProducts();
+      setMyProducts(myProductsResponse.data.list || []);
 
-      try {
-        const likedProductsResponse = await authAPI.getMyLikedProducts();
-        setLikedProducts(likedProductsResponse.data || []);
-      } catch (error) {
-        console.log('좋아요한 상품 조회 미구현:', error);
-        setLikedProducts([]);
-      }
+      const likedProductsResponse = await authAPI.getMyLikedProducts();
+      setLikedProducts(likedProductsResponse.data.list || []);
 
-      try {
-        const myArticlesResponse = await authAPI.getMyArticles();
-        setMyArticles(myArticlesResponse.data || []);
-      } catch (error) {
-        console.log('내 게시글 조회 미구현:', error);
-        setMyArticles([]);
-      }
+      const myArticlesResponse = await authAPI.getMyArticles();
+      setMyArticles(myArticlesResponse.data.list || []);
     } catch (error) {
       console.error('데이터 로드 실패:', error);
     } finally {

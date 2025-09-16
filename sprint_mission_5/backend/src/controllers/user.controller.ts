@@ -196,7 +196,10 @@ export const getMyProducts = async (
       return;
     }
 
-    res.status(501).json({ message: '내 상품 조회 기능은 아직 구현되지 않았습니다.' });
+    const userService = serviceContainer.getUserService();
+    const result = await userService.getMyProducts(req.user.id);
+
+    res.status(200).json(result);
   } catch (error) {
     next(error);
   }
@@ -213,7 +216,10 @@ export const getMyLikedProducts = async (
       return;
     }
 
-    res.status(501).json({ message: '좋아요한 상품 조회 기능은 아직 구현되지 않았습니다.' });
+    const userService = serviceContainer.getUserService();
+    const result = await userService.getMyLikedProducts(req.user.id);
+
+    res.status(200).json(result);
   } catch (error) {
     next(error);
   }
@@ -230,7 +236,10 @@ export const getMyArticles = async (
       return;
     }
 
-    res.status(501).json({ message: '내 게시글 조회 기능은 아직 구현되지 않았습니다.' });
+    const userService = serviceContainer.getUserService();
+    const result = await userService.getMyArticles(req.user.id);
+
+    res.status(200).json(result);
   } catch (error) {
     next(error);
   }

@@ -135,4 +135,25 @@ export class UserService {
       throw new Error('유효하지 않은 액세스 토큰입니다.');
     }
   }
+
+  async getMyProducts(userId: number) {
+    // ProductRepository를 사용하여 사용자의 상품 조회
+    const { serviceContainer } = await import('./service.container.js');
+    const productRepository = serviceContainer.getProductRepository();
+    return await productRepository.findByUserId(userId);
+  }
+
+  async getMyLikedProducts(userId: number) {
+    // ProductRepository를 사용하여 사용자가 좋아요한 상품 조회
+    const { serviceContainer } = await import('./service.container.js');
+    const productRepository = serviceContainer.getProductRepository();
+    return await productRepository.findLikedByUserId(userId);
+  }
+
+  async getMyArticles(userId: number) {
+    // ArticleRepository를 사용하여 사용자의 게시글 조회
+    const { serviceContainer } = await import('./service.container.js');
+    const articleRepository = serviceContainer.getArticleRepository();
+    return await articleRepository.findByUserId(userId);
+  }
 }

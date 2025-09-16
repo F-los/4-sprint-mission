@@ -127,4 +127,63 @@ export class ProductRepository {
     });
     return product?.userId === userId;
   }
+
+  async findByUserId(userId: number): Promise<{ list: ProductResponseDto[]; totalCount: number }> {
+    const products = await this.prisma.product.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const productsWithCounts = await Promise.all(
+      products.map(async (product) => ({
+        ...product,
+        likeCount: await this.prisma.like.count({
+          where: { productId: product.id },
+        }),
+        commentCount: await this.prisma.comment.count({
+          where: { productId: product.id },
+        }),
+        isLiked: false, // 자신의 상품이므로 기본적으로 false
+      })),
+    );
+
+    return {
+      list: productsWithCounts,
+      totalCount: products.length,
+    };
+  }
+
+  async findLikedByUserId(userId: number): Promise<{ list: ProductResponseDto[]; totalCount: number }> {
+    const likedProducts = await this.prisma.like.findMany({
+      where: {
+        userId,
+        productId: { not: null }
+      },
+      include: {
+        product: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const productsWithCounts = await Promise.all(
+      likedProducts.map(async (like) => {
+        const product = like.product!;
+        return {
+          ...product,
+          likeCount: await this.prisma.like.count({
+            where: { productId: product.id },
+          }),
+          commentCount: await this.prisma.comment.count({
+            where: { productId: product.id },
+          }),
+          isLiked: true, // 좋아요한 상품이므로 true
+        };
+      }),
+    );
+
+    return {
+      list: productsWithCounts,
+      totalCount: likedProducts.length,
+    };
+  }
 }
