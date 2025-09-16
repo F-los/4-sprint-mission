@@ -196,24 +196,6 @@ const query = {
 };
 ```
 
-### 3. **환경변수 명칭 불일치**
-
-#### 문제: JWT_SECRET vs JWT_ACCESS_SECRET
-```typescript
-// 코드에서는 JWT_ACCESS_SECRET 사용
-process.env['JWT_ACCESS_SECRET']
-
-// 하지만 render.yaml에서는 JWT_SECRET
-```
-
-#### 해결: 환경변수 명칭 통일
-```yaml
-# render.yaml
-envVars:
-  - key: JWT_ACCESS_SECRET  # 수정됨
-    generateValue: true
-```
-
 ## 📈 성능 및 확장성 개선
 
 ### 1. **관심사 분리**
@@ -229,23 +211,6 @@ envVars:
 - 새로운 기능 추가 시 기존 코드 변경 최소화
 - 인터페이스 기반 설계로 구현체 교체 용이
 
-## 🚀 배포 설정
-
-### Render.com 배포 설정 업데이트
-
-```yaml
-# render.yaml
-services:
-  - type: web
-    name: sprint-mission-5-backend  # 업데이트됨
-    envVars:
-      - key: JWT_ACCESS_SECRET      # 수정됨
-        generateValue: true
-
-databases:
-  - name: sprint-mission-5-db      # 업데이트됨
-    databaseName: sprint_mission_5  # 업데이트됨
-```
 
 ## 🛠️ 개발 환경
 
@@ -267,13 +232,6 @@ npm start
 # 타입 체크
 npm run typecheck
 ```
-
-### 주요 스크립트
-
-- `npm run dev` - ts-node로 개발 서버 실행
-- `npm run build` - Prisma 클라이언트 생성 후 TypeScript 컴파일
-- `npm run deploy:full` - 프로덕션 배포용 (마이그레이션 + 시드)
-
 ## 🔍 API 엔드포인트
 
 기존 Sprint Mission 4의 모든 API 엔드포인트를 유지하면서 내부 구조만 개선:
@@ -284,6 +242,9 @@ npm run typecheck
 - `POST /users/logout` - 로그아웃
 - `GET /users/me` - 프로필 조회
 - `PATCH /users/me` - 프로필 수정
+- `GET /users/me/products` - 내가 등록한 상품 목록
+- `GET /users/me/liked-products` - 내가 좋아요한 상품 목록
+- `GET /users/me/articles` - 내가 작성한 게시글 목록
 
 ### 상품 (Products)
 - `GET /products` - 상품 목록 조회
@@ -480,19 +441,6 @@ export const updateProduct = async (req, res, next) => {
 | 테스트 가능성 | 통합 테스트 위주 | 단위 테스트 가능 | ⭐⭐⭐⭐⭐ |
 | 확장성 | 기능 추가 시 Controller 수정 | 계층별 독립적 확장 | ⭐⭐⭐⭐⭐ |
 
-## 🏆 코드 품질 개선 성과
-
-### 정량적 개선
-- **타입 커버리지**: 85% → 98%
-- **코드 중복률**: 23% → 8%
-- **평균 함수 복잡도**: 4.2 → 2.1
-- **단일 책임 원칙 준수율**: 67% → 95%
-
-### 정성적 개선
-- **가독성**: 계층별 명확한 역할 분담
-- **유지보수성**: 변경 영향도 최소화
-- **확장성**: 새 기능 추가 시 기존 코드 변경 불필요
-- **테스트 용이성**: Mock 객체 활용한 단위 테스트 가능
 
 ## 🚀 배포 과정 및 문제 해결
 
@@ -550,69 +498,7 @@ JWT_ACCESS_SECRET=[32자 이상 랜덤 문자열]
 JWT_REFRESH_SECRET=[32자 이상 다른 랜덤 문자열]
 ```
 
-### 🔧 **Frontend 연동 수정**
 
-#### **API URL 업데이트**
-배포된 Backend URL로 Frontend API 엔드포인트 수정:
-
-**수정된 파일들:**
-```typescript
-// src/lib/api.ts
-const API_BASE_URL = process.env.NODE_ENV === 'production'
-  ? 'https://sprint-mission-id8i.onrender.com'  // ← 새로운 URL
-  : 'http://localhost:3000';
-
-// src/app/articles/page.tsx
-const API_BASE_URL = process.env.NODE_ENV === 'production'
-  ? 'https://sprint-mission-id8i.onrender.com'  // ← 새로운 URL
-  : 'http://localhost:3000';
-
-// src/app/articles/[id]/page.tsx
-const API_BASE_URL = process.env.NODE_ENV === 'production'
-  ? 'https://sprint-mission-id8i.onrender.com'  // ← 새로운 URL
-  : 'http://localhost:3000';
-```
-
-### 📈 **배포 성능 최적화**
-
-#### **개선된 빌드 프로세스**
-```yaml
-# render.yaml 최적화
-services:
-  - type: web
-    name: sprint-mission-5-backend
-    env: node
-    buildCommand: npm install && npm run build
-    startCommand: npm run deploy:full && npm start
-    envVars:
-      - key: JWT_ACCESS_SECRET  # 정확한 환경변수명 사용
-        generateValue: true
-```
-
-#### **배포 안정성 향상**
-- **타입 안전성**: 컴파일 타임 에러 감지로 런타임 오류 방지
-- **의존성 관리**: 프로덕션 필수 패키지와 개발 전용 패키지 분리
-- **환경 분리**: 개발/프로덕션 환경별 API URL 자동 전환
-
-### 🛡️ **보안 및 운영 개선**
-
-#### **JWT 토큰 관리 개선**
-```typescript
-// 환경변수명 표준화
-JWT_ACCESS_SECRET  // 액세스 토큰용
-JWT_REFRESH_SECRET // 리프레시 토큰용
-
-// 토큰 자동 갱신 로직 유지
-api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    // 403 에러 시 자동 토큰 갱신
-    if (error.response?.status === 403) {
-      // 새로운 Backend URL로 갱신 요청
-    }
-  }
-);
-```
 
 ### 📊 **배포 후 검증 결과**
 
@@ -631,52 +517,7 @@ api.interceptors.response.use(
 | API 응답 속도 | N/A | ~200ms | ✅ |
 | 메모리 사용량 | N/A | ~150MB | ✅ |
 
-### 🎯 **배포 모범사례 도출**
 
-#### **TypeScript 프로젝트 Render 배포 체크리스트**
-1. **✅ 타입 패키지 의존성 관리**
-   - `@types/*` 패키지들을 `dependencies`에 포함
-   - `typescript` 컴파일러도 `dependencies`에 포함
-
-2. **✅ 환경변수 설정**
-   - 모든 필수 환경변수 사전 준비
-   - JWT 시크릿 32자 이상 보안 강화
-
-3. **✅ 빌드 명령어 최적화**
-   - Prisma 클라이언트 생성 포함
-   - TypeScript 컴파일 포함
-
-4. **✅ Root Directory 정확 설정**
-   - 모노레포 구조 시 backend 디렉토리 명시
-
-### 🔄 **CI/CD 파이프라인 개선안**
-
-배포 과정에서 얻은 교훈을 바탕으로 한 개선 제안:
-
-```yaml
-# 향후 GitHub Actions 워크플로우
-name: Deploy to Render
-on:
-  push:
-    branches: [ main ]
-    paths: [ 'backend/**' ]
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-      - name: Install dependencies
-        run: cd backend && npm ci
-      - name: TypeScript compile check
-        run: cd backend && npm run build
-      - name: Deploy to Render
-        # Render webhook 호출
-```
 
 ## 🎉 결론
 
@@ -692,10 +533,17 @@ Sprint Mission 5를 통해 기존 Express.js API 서버를:
 **기존 기능은 100% 유지**하면서도 **코드 품질과 유지보수성을 크게 향상**시키고, **실제 프로덕션 환경에서 안정적으로 동작**하는 성공적인 리팩토링이었습니다! 🚀
 
 ### 📦 **배포 정보**
-- **Backend URL**: https://sprint-mission-id8i.onrender.com
+
 - **Database**: PostgreSQL (Render.com)
 - **Environment**: Node.js 22.16.0
 - **Status**: ✅ Live & Running
+
+**🌐 배포 URL:**
+- **Frontend**: https://sprint-mission-f-los.vercel.app
+- **Backend**: https://sprint-mission-id8i.onrender.com
+
+**💾 프로젝트 코드:**
+- **Repository**: https://github.com/f-los/sprint-mission-5
 
 ---
 
