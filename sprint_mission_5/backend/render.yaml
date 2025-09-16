@@ -12,7 +12,7 @@ services:
         fromDatabase:
           name: sprint-mission-5-db
           property: connectionString
-      - key: JWT_ACCESS_SECRET
+      - key: JWT_SECRET
         generateValue: true
       - key: JWT_REFRESH_SECRET
         generateValue: true

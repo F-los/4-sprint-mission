@@ -96,7 +96,7 @@ export class UserService {
 
       const newAccessToken = jwt.sign(
         { userId: user.id },
-        process.env['JWT_ACCESS_SECRET']!,
+        process.env['JWT_SECRET']!,
         { expiresIn: '1h' },
       );
 
@@ -112,7 +112,7 @@ export class UserService {
   } {
     const accessToken = jwt.sign(
       { userId },
-      process.env['JWT_ACCESS_SECRET']!,
+      process.env['JWT_SECRET']!,
       { expiresIn: '1h' },
     );
 
@@ -127,7 +127,7 @@ export class UserService {
 
   verifyAccessToken(token: string): { userId: number } {
     try {
-      const decoded = jwt.verify(token, process.env['JWT_ACCESS_SECRET']!) as {
+      const decoded = jwt.verify(token, process.env['JWT_SECRET']!) as {
         userId: number;
       };
       return decoded;
