@@ -29,13 +29,13 @@ export default function Login() {
 
     try {
       const response = await authAPI.login(formData);
-      const { accessToken, refreshToken, user } = response.data;
+      const { accessToken, refreshToken, nickname } = response.data;
 
       // 토큰 저장
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('refreshToken', refreshToken);
 
-      alert(`로그인 성공! ${user.nickname}님 환영합니다.`);
+      alert(`로그인 성공! ${nickname}님 환영합니다.`);
       router.push('/');
     } catch (error: unknown) {
       const apiError = error as { response?: { data?: { message?: string } } };
