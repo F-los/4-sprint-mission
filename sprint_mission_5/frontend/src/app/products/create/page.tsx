@@ -31,13 +31,41 @@ export default function CreateProduct() {
     setError('');
 
     try {
+      // 유효성 검사
+      if (!formData.name.trim()) {
+        setError('상품명을 입력해주세요.');
+        setLoading(false);
+        return;
+      }
+      if (!formData.description.trim()) {
+        setError('상품 설명을 입력해주세요.');
+        setLoading(false);
+        return;
+      }
+      if (!formData.price || isNaN(Number(formData.price)) || Number(formData.price) <= 0) {
+        setError('올바른 가격을 입력해주세요.');
+        setLoading(false);
+        return;
+      }
+      if (!formData.tags.trim()) {
+        setError('태그를 입력해주세요.');
+        setLoading(false);
+        return;
+      }
+
       const tagsArray = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+      if (tagsArray.length === 0) {
+        setError('최소 하나의 태그를 입력해주세요.');
+        setLoading(false);
+        return;
+      }
+
       const productData = {
-        name: formData.name,
-        description: formData.description,
-        price: parseInt(formData.price),
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        price: Number(formData.price),
         tags: tagsArray,
-        ...(formData.imageUrl && { imageUrl: formData.imageUrl }),
+        ...(formData.imageUrl && { imageUrl: formData.imageUrl.trim() }),
       };
 
       await productAPI.create(productData);
