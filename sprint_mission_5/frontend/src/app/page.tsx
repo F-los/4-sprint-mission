@@ -95,7 +95,7 @@ export default function Home() {
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <h1 className="text-xl font-bold text-gray-900">Sprint Mission 4 테스트</h1>
+            <h1 className="text-xl font-bold text-gray-900">Sprint Mission 5 테스트 (새 배포)</h1>
             <div className="flex items-center space-x-4">
               {user ? (
                 <div className="flex items-center space-x-4">
