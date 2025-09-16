@@ -30,7 +30,8 @@ const getApiBaseUrl = () => {
   return 'https://sprint-mission-id8i.onrender.com';
 };
 
-const API_BASE_URL = getApiBaseUrl();
+// 임시로 하드코딩 (디버깅용)
+const API_BASE_URL = 'https://sprint-mission-id8i.onrender.com';
 console.log('Final API_BASE_URL:', API_BASE_URL);
 
 export const api = axios.create({
