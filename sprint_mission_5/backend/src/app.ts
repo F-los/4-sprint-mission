@@ -14,7 +14,7 @@ const app: Application = express();
 const corsOptions = {
   origin: [
     'http://localhost:3001', // 개발 환경
-    'https://4-sprint-mission.vercel.app', // 프로덕션 환경
+    'https://sprint-mission-f-los.vercel.app', // 프로덕션 환경
   ],
   credentials: true,
   optionsSuccessStatus: 200,
