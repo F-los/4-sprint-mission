@@ -1,9 +1,27 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ||
-  (typeof window !== 'undefined' && window.location.hostname !== 'localhost'
-    ? 'https://sprint-mission-id8i.onrender.com'
-    : 'http://localhost:3000');
+// 환경별 API URL 설정
+const getApiBaseUrl = () => {
+  // 환경 변수가 있으면 우선 사용
+  if (process.env.NEXT_PUBLIC_API_BASE_URL) {
+    return process.env.NEXT_PUBLIC_API_BASE_URL;
+  }
+
+  // 클라이언트 사이드에서 hostname 확인
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'http://localhost:3000';
+    }
+    // 프로덕션 환경 (Vercel)
+    return 'https://sprint-mission-id8i.onrender.com';
+  }
+
+  // 서버 사이드에서는 프로덕션 URL 사용
+  return 'https://sprint-mission-id8i.onrender.com';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
