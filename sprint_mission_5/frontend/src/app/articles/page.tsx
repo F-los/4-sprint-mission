@@ -51,9 +51,10 @@ export default function Articles() {
     }
 
     try {
-      const API_BASE_URL = process.env.NODE_ENV === 'production'
-        ? 'https://sprint-mission-id8i.onrender.com'
-        : 'http://localhost:3000';
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ||
+        (typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+          ? 'https://sprint-mission-id8i.onrender.com'
+          : 'http://localhost:3000');
       
       const response = await fetch(`${API_BASE_URL}/articles/${articleId}/like`, {
         method: 'POST',
