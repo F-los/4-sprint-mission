@@ -90,8 +90,8 @@ export default function ArticleDetail({ params }: { params: Promise<{ id: string
     }
 
     try {
-      const API_BASE_URL = process.env.NODE_ENV === 'production' 
-        ? 'https://sprint-mission-4-backend.onrender.com'
+      const API_BASE_URL = process.env.NODE_ENV === 'production'
+        ? 'https://sprint-mission-id8i.onrender.com'
         : 'http://localhost:3000';
         
       const response = await fetch(`${API_BASE_URL}/articles/${articleId}/like`, {
