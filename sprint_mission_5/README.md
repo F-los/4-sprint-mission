@@ -549,6 +549,6 @@ Sprint Mission 5를 통해 기존 Express.js API 서버를:
 
 **개발자**: F-los
 **이전 리뷰어**: mag123c (Sprint Mission 4)
-**프로젝트 기간**: 2024년 스프린트 미션 4-5 연속 개발
+**프로젝트 기간**: Code It Sprint Part 3
 **아키텍처 패턴**: Layered Architecture + Repository Pattern + Dependency Injection
 **배포 플랫폼**: Render.com (Backend) + Vercel (Frontend)
