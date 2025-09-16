@@ -36,7 +36,7 @@ export default function Articles() {
       }
 
       const articlesResponse = await articleAPI.getAll({ limit: 10 });
-      setArticles(articlesResponse.data);
+      setArticles(articlesResponse.data.list || []);
     } catch (error) {
       console.error('데이터 로드 실패:', error);
     } finally {
