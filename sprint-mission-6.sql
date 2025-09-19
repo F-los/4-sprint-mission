@@ -19,7 +19,7 @@ SELECT * FROM orders ORDER BY date DESC, time DESC LIMIT 10 OFFSET 0;
 SELECT * FROM orders ORDER BY date DESC, time DESC LIMIT 10 OFFSET 40;
 
 -- 7. `orders` 테이블에서 커서 페이지네이션된 목록을 조회합니다. 페이지 크기가 10이고 최신순일때, `id` 값을 기준으로 커서를 사용합시다. 커서의 값이 `42`일 때 다음 페이지를 조회하세요.
-SELECT * FROM orders WHERE id = 42 ORDER BY date DESC, time DESC LIMIT 10;
+SELECT * FROM orders WHERE id < 42 ORDER BY date DESC, time DESC LIMIT 10;
 
 -- 8. `orders` 테이블에서 2025년 3월에 주문된 내역만 조회하세요.
 SELECT * FROM orders WHERE date >= '2025-03-01' AND date < '2025-04-01';
@@ -34,7 +34,7 @@ SELECT * FROM pizza_types WHERE name LIKE '%Cheese%' OR name LIKE '%Chicken%';
 -- # 중급 문제
 
 -- 1. `order_details` 테이블에서 각 피자(`pizza_id`)별로 주문된 건 수(`order_id`)를 보여주세요.
-
+SELECT pizza_id, COUNT(order_id) AS order_count FROM order_details GROUP BY pizza_id;
 -- 2. `order_details` 테이블에서 각 피자(`pizza_id`)별로 총 주문 수량을 구하세요.
 
 -- 3. `pizzas` 테이블에서 `price`의 크기가 20보다 큰 피자의 종류만 `order_details` 테이블에서 조회하세요. (힌트: 서브쿼리)
