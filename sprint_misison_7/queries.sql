@@ -47,7 +47,7 @@ JOIN product_likes pl ON p.id = pl.product_id
 WHERE pl.user_id = 1
 ORDER BY pl.created_at DESC
 LIMIT 10 OFFSET 20;
-
+-- PK(user_id, product_id) 를 사용하여 좋아요 중복을 방지
 
 /*
   5. 내가 좋아요 누른 상품의 총 개수
@@ -64,7 +64,9 @@ WHERE user_id = 1;
 */
 INSERT INTO products (seller_id, category_id, name, description, price, condition, status)
 VALUES (1, 1, 'iPhone 15 Pro', '거의 새것이나 다름없는 상태입니다', 1200000, 'LIKE_NEW', 'FOR_SALE');
-
+RETURNING id;
+-- categories.id = 1 이 존재한다고 가정했을때
+-- RETURNING id 를 통해 생성된 상품의 id를 반환
 
 /*
   7. 상품 목록 조회
@@ -75,7 +77,7 @@ VALUES (1, 1, 'iPhone 15 Pro', '거의 새것이나 다름없는 상태입니다
 */
 SELECT p.*, p.like_count
 FROM products p
-WHERE LOWER(p.name) LIKE '%test%'
+WHERE LOWER(p.name) LIKE '%' || LOWER('test') || '%'
 ORDER BY p.created_at DESC
 LIMIT 10 OFFSET 0;
 
@@ -94,7 +96,10 @@ WHERE id = 1;
   - 1번 상품 수정
 */
 UPDATE products
-SET name = 'iPhone 15 Pro Max', price = 1500000, description = '상태 최상급'
+SET name = 'iPhone 15 Pro Max',
+    price = 1500000,
+    description = '상태 최상급',
+    updated_at = NOW()
 WHERE id = 1;
 
 
@@ -104,7 +109,8 @@ WHERE id = 1;
 */
 DELETE FROM products
 WHERE id = 1;
-
+-- status 삭제로 soft delete로도 구현가능
+-- 현상태는 products를 삭제함으로써 CASCADE로 연관된 images/likes/comments도 삭제됨
 
 /*
   11. 상품 좋아요
@@ -112,7 +118,8 @@ WHERE id = 1;
 */
 INSERT INTO product_likes (user_id, product_id)
 VALUES (1, 2);
-
+ON CONFLICT (user_id, product_id) DO NOTHING;
+-- PK(user_id, product_id) 를 사용하여 좋아요 중복을 방지
 
 /*
   12. 상품 좋아요 취소
@@ -128,7 +135,8 @@ WHERE user_id = 1 AND product_id = 2;
 */
 INSERT INTO product_comments (product_id, user_id, content)
 VALUES (2, 1, '이 상품 상태가 정말 좋네요!');
-
+RETURNING id;
+-- RETURNING id 를 통해 생성된 댓글의 id를 반환
 
 /*
   14. 상품 댓글 조회
@@ -138,6 +146,8 @@ VALUES (2, 1, '이 상품 상태가 정말 좋네요!');
 */
 SELECT *
 FROM product_comments
-WHERE product_id = 1 AND created_at < '2025-03-25'
+WHERE product_id = 1
+  AND created_at < TIMESTAMPTZ '2025-03-25 00:00:00+09'
 ORDER BY created_at DESC
 LIMIT 10;
+-- 기준일을 타임스탬프로 명시함으로써 경계 오류를 방지함
