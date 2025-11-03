@@ -5,41 +5,67 @@ Express + WebSocket(ws)을 사용한 실시간 알림 시스템 구현
 ## 실행 방법
 
 ### 1. 의존성 설치
-
 ```bash
-npm i
+npm install
 ```
 
-### 2. 데이터베이스 설정
+### 2. PostgreSQL 데이터베이스 설정
 
-schema.sql을 실행하여 notifications 테이블과 트리거를 생성합니다.
-
+PostgreSQL에 접속:
 ```bash
-psql -U postgres -d panda_market -f schema.sql
+sudo -u postgres psql
 ```
 
-### 3. 서버 설정 수정
-
-server.js 파일에서 PostgreSQL 연결 정보를 수정하세요:
-
-```javascript
-const pool = new Pool({
-  host: 'localhost',
-  port: 5432,
-  database: 'panda_market',
-  user: 'postgres',
-  password: 'postgres', // 실제 비밀번호로 변경
-});
+데이터베이스와 유저 생성:
+```sql
+CREATE DATABASE panda_market;
+CREATE USER panda_user WITH PASSWORD 'panda1234';
+GRANT ALL PRIVILEGES ON DATABASE panda_market TO panda_user;
+\c panda_market
+GRANT ALL ON SCHEMA public TO panda_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO panda_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO panda_user;
+\q
 ```
 
-### 4. 서버 실행
+### 3. 스키마 생성
+```bash
+sudo -u postgres psql -d panda_market
+```
+```sql
+\i /home/flos/codeit/sprint_mission/sprint_mission_8/schema.sql
+```
 
+테이블 소유자를 panda_user로 변경:
+```sql
+ALTER TABLE notifications OWNER TO panda_user;
+ALTER TABLE users OWNER TO panda_user;
+ALTER TABLE products OWNER TO panda_user;
+ALTER TABLE posts OWNER TO panda_user;
+ALTER TABLE post_comments OWNER TO panda_user;
+ALTER TABLE product_comments OWNER TO panda_user;
+ALTER TABLE product_likes OWNER TO panda_user;
+ALTER TABLE categories OWNER TO panda_user;
+ALTER TABLE boards OWNER TO panda_user;
+ALTER FUNCTION notify_new_notification() OWNER TO panda_user;
+ALTER FUNCTION notify_price_change() OWNER TO panda_user;
+ALTER FUNCTION notify_post_comment() OWNER TO panda_user;
+ALTER FUNCTION notify_product_comment() OWNER TO panda_user;
+ALTER FUNCTION update_timestamp() OWNER TO panda_user;
+\q
+```
+
+### 4. 테스트 데이터 생성
+```bash
+node seed.js
+```
+
+### 5. 서버 실행
 ```bash
 npm start
 ```
 
-### 5. 브라우저 접속
-
+### 6. 브라우저 접속
 http://localhost:3000
 
 ## 기능
@@ -92,6 +118,7 @@ VALUES (1, 2, '구매하고 싶습니다!');
 ```
 sprint_mission_8/
 ├── server.js              # Express + WebSocket 서버
+├── seed.js                # 테스트 데이터 생성 스크립트
 ├── package.json           # 의존성 설정
 ├── schema.sql             # 데이터베이스 스키마
 ├── queries.sql            # SQL 쿼리 모음
