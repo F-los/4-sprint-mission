@@ -1,6 +1,6 @@
 # 판다마켓 실시간 알림 시스템
 
-Express + WebSocket(ws)을 사용한 실시간 알림 시스템 구현
+Express + Socket.IO를 사용한 실시간 알림 시스템 구현
 
 ## 실행 방법
 
@@ -85,6 +85,14 @@ http://localhost:3000
 - 모든 알림 읽음 처리
 - 테스트 알림 생성
 
+### Socket.IO 장점
+
+- **자동 재연결**: 연결이 끊기면 자동으로 재연결 시도
+- **Room 기능**: 사용자별 Room으로 효율적인 알림 전송
+- **이벤트 기반**: 타입별 이벤트로 깔끔한 코드 구조
+- **자동 JSON 변환**: 수동 파싱 불필요
+- **폴백 지원**: WebSocket이 안되면 Long Polling으로 자동 전환
+
 ## 테스트 방법
 
 ### 1. 브라우저를 2개 열기
@@ -117,12 +125,19 @@ VALUES (1, 2, '구매하고 싶습니다!');
 
 ```
 sprint_mission_8/
-├── server.js              # Express + WebSocket 서버
+├── server.js              # Express + Socket.IO 서버
 ├── seed.js                # 테스트 데이터 생성 스크립트
-├── package.json           # 의존성 설정
+├── package.json           # 의존성 설정 (socket.io)
 ├── schema.sql             # 데이터베이스 스키마
 ├── queries.sql            # SQL 쿼리 모음
 ├── public/
-│   └── index.html        # 클라이언트 UI
+│   └── index.html        # 클라이언트 UI (Socket.IO 클라이언트)
 └── README.md             # 이 파일
 ```
+
+## 기술 스택
+
+- **Backend**: Node.js, Express
+- **WebSocket**: Socket.IO v4.7
+- **Database**: PostgreSQL
+- **Features**: PostgreSQL LISTEN/NOTIFY, Room 기반 알림 전송

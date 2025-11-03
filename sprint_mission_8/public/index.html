@@ -209,7 +209,7 @@
   <body>
     <div class="container">
       <header>
-        <h1>판다마켓 실시간 알림</h1>
+        <h1>판다마켓 실시간 알림 (Socket.IO)</h1>
         <div class="status" id="status">서버 연결 중...</div>
       </header>
 
@@ -252,8 +252,9 @@
       </div>
     </div>
 
+    <script src="/socket.io/socket.io.js"></script>
     <script>
-      let ws;
+      let socket;
       let currentUserId = null;
       const statusEl = document.getElementById('status');
       const userSelect = document.getElementById('userSelect');
@@ -261,49 +262,59 @@
       const unreadBadge = document.getElementById('unreadBadge');
       const markAllReadBtn = document.getElementById('markAllRead');
 
-      function connectWebSocket() {
-        ws = new WebSocket('ws://localhost:3000');
+      function connectSocket() {
+        socket = io();
 
-        ws.onopen = () => {
+        socket.on('connect', () => {
           statusEl.textContent = '✅ 서버 연결됨';
           statusEl.classList.add('connected');
-        };
+          console.log('Socket.IO 연결됨:', socket.id);
 
-        ws.onmessage = (event) => {
-          const data = JSON.parse(event.data);
-
-          if (data.type === 'unread_count') {
-            updateUnreadBadge(data.count);
+          if (currentUserId) {
+            socket.emit('authenticate', parseInt(currentUserId));
           }
+        });
 
-          if (data.type === 'notifications_list') {
-            renderNotifications(data.notifications);
-          }
+        socket.on('unread_count', (data) => {
+          updateUnreadBadge(data.count);
+        });
 
-          if (data.type === 'new_notification') {
-            showToast(data.notification.title);
-            loadNotifications();
-          }
+        socket.on('notifications_list', (data) => {
+          renderNotifications(data.notifications);
+        });
 
-          if (data.type === 'marked_read' || data.type === 'all_marked_read') {
-            loadNotifications();
-          }
-        };
+        socket.on('new_notification', (data) => {
+          showToast(data.notification.title);
+          loadNotifications();
+        });
 
-        ws.onclose = () => {
-          statusEl.textContent = '⚠️ 서버 연결 끊김';
+        socket.on('marked_read', () => {
+          loadNotifications();
+        });
+
+        socket.on('all_marked_read', () => {
+          loadNotifications();
+        });
+
+        socket.on('disconnect', () => {
+          statusEl.textContent = '⚠️ 서버 연결 끊김 (재연결 중...)';
           statusEl.classList.remove('connected');
-          setTimeout(connectWebSocket, 3000);
-        };
+        });
+
+        socket.on('reconnect', () => {
+          statusEl.textContent = '✅ 서버 재연결됨';
+          statusEl.classList.add('connected');
+          if (currentUserId) {
+            socket.emit('authenticate', parseInt(currentUserId));
+            loadNotifications();
+          }
+        });
       }
 
       userSelect.addEventListener('change', (e) => {
         currentUserId = e.target.value;
-        if (currentUserId && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({
-            type: 'authenticate',
-            userId: parseInt(currentUserId)
-          }));
+        if (currentUserId && socket.connected) {
+          socket.emit('authenticate', parseInt(currentUserId));
           loadNotifications();
         } else {
           notificationList.innerHTML = '<div class="empty-state">사용자를 선택하면 알림이 표시됩니다</div>';
@@ -312,20 +323,14 @@
       });
 
       markAllReadBtn.addEventListener('click', () => {
-        if (currentUserId && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({
-            type: 'mark_all_read',
-            userId: parseInt(currentUserId)
-          }));
+        if (currentUserId && socket.connected) {
+          socket.emit('mark_all_read', parseInt(currentUserId));
         }
       });
 
       function loadNotifications() {
-        if (currentUserId && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({
-            type: 'get_notifications',
-            userId: parseInt(currentUserId)
-          }));
+        if (currentUserId && socket.connected) {
+          socket.emit('get_notifications', parseInt(currentUserId));
         }
       }
 
@@ -348,11 +353,8 @@
       }
 
       function markAsRead(notificationId) {
-        if (ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({
-            type: 'mark_read',
-            notificationId: notificationId
-          }));
+        if (socket.connected) {
+          socket.emit('mark_read', notificationId);
         }
       }
 
@@ -414,7 +416,7 @@
         Notification.requestPermission();
       }
 
-      connectWebSocket();
+      connectSocket();
     </script>
   </body>
 </html>
