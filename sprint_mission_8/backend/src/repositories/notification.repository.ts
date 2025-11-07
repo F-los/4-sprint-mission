@@ -1,5 +1,5 @@
 // src/repositories/notification.repository.ts
-import prisma from '../prisma/index.js';
+import prisma from '../prisma/client.js';
 
 export class NotificationRepository {
   async create(data: {

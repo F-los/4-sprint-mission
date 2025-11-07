@@ -24,7 +24,7 @@ export const initializeSocket = (httpServer: HttpServer): Server => {
 
   // Authentication middleware
   io.use((socket: AuthenticatedSocket, next) => {
-    const token = socket.handshake.auth.token;
+    const token = socket.handshake.auth['token'];
 
     if (!token) {
       return next(new Error('Authentication error'));

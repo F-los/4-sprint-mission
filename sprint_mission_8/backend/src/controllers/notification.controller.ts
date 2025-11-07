@@ -16,8 +16,8 @@ export class NotificationController {
   ) => {
     try {
       const userId = (req as any).user.userId;
-      const limit = parseInt(req.query.limit as string) || 20;
-      const offset = parseInt(req.query.offset as string) || 0;
+      const limit = parseInt(req.query['limit'] as string) || 20;
+      const offset = parseInt(req.query['offset'] as string) || 0;
 
       const notifications = await this.notificationService.getNotifications(
         userId,
@@ -50,7 +50,7 @@ export class NotificationController {
   markAsRead = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const userId = (req as any).user.userId;
-      const notificationId = parseInt(req.params.id);
+      const notificationId = parseInt(req.params['id']!);
 
       await this.notificationService.markAsRead(notificationId, userId);
 
