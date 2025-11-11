@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -7,17 +8,17 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: '*',
+    origin: process.env.CORS_ORIGIN || '*',
     methods: ['GET', 'POST']
   }
 });
 
 const pool = new Pool({
-  host: 'localhost',
-  port: 5432,
-  database: 'panda_market',
-  user: 'panda_user',
-  password: 'panda1234',
+  host: process.env.DB_HOST || 'localhost',
+  port: parseInt(process.env.DB_PORT) || 5432,
+  database: process.env.DB_NAME || 'panda_market',
+  user: process.env.DB_USER || 'panda_user',
+  password: process.env.DB_PASSWORD || 'panda1234',
 });
 
 io.on('connection', (socket) => {
@@ -133,7 +134,9 @@ app.post('/api/test-notification', async (req, res) => {
   res.json({ success: true });
 });
 
-server.listen(3000, async () => {
-  console.log('✅ Server running on http://localhost:3000');
+const PORT = process.env.PORT || 3000;
+
+server.listen(PORT, async () => {
+  console.log(`✅ Server running on http://localhost:${PORT}`);
   await startListening();
 });

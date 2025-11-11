@@ -9,7 +9,32 @@ Express + Socket.IO를 사용한 실시간 알림 시스템 구현
 npm install
 ```
 
-### 2. PostgreSQL 데이터베이스 설정
+### 2. 환경변수 설정
+
+```bash
+cp .env.example .env
+```
+
+`.env` 파일 내용:
+```env
+# Server Configuration
+PORT=3000
+
+# CORS Configuration
+CORS_ORIGIN=*
+
+# Database Configuration
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=panda_market
+DB_USER=panda_user
+DB_PASSWORD=panda1234
+
+# Node Environment
+NODE_ENV=development
+```
+
+### 3. PostgreSQL 데이터베이스 설정
 
 PostgreSQL에 접속:
 ```bash
@@ -28,7 +53,7 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO panda_user;
 \q
 ```
 
-### 3. 스키마 생성
+### 4. 스키마 생성
 ```bash
 sudo -u postgres psql -d panda_market
 ```
@@ -55,18 +80,18 @@ ALTER FUNCTION update_timestamp() OWNER TO panda_user;
 \q
 ```
 
-### 4. 테스트 데이터 생성
+### 5. 테스트 데이터 생성
 ```bash
-node seed.js
+npm run seed
 ```
 
-### 5. 서버 실행
+### 6. 서버 실행
 ```bash
 npm start
 ```
 
-### 6. 브라우저 접속
-http://localhost:3000
+### 7. 브라우저 접속
+http://localhost:3000 (또는 `.env`에서 설정한 포트)
 
 ## 기능
 
@@ -127,9 +152,11 @@ VALUES (1, 2, '구매하고 싶습니다!');
 sprint_mission_8/
 ├── server.js              # Express + Socket.IO 서버
 ├── seed.js                # 테스트 데이터 생성 스크립트
-├── package.json           # 의존성 설정 (socket.io)
+├── package.json           # 의존성 설정 (socket.io, dotenv)
 ├── schema.sql             # 데이터베이스 스키마
 ├── queries.sql            # SQL 쿼리 모음
+├── .env.example           # 환경변수 예시 파일
+├── .env                   # 환경변수 설정 파일 (git에서 제외)
 ├── public/
 │   └── index.html        # 클라이언트 UI (Socket.IO 클라이언트)
 └── README.md             # 이 파일
@@ -140,4 +167,18 @@ sprint_mission_8/
 - **Backend**: Node.js, Express
 - **WebSocket**: Socket.IO v4.7
 - **Database**: PostgreSQL
+- **Environment**: dotenv
 - **Features**: PostgreSQL LISTEN/NOTIFY, Room 기반 알림 전송
+
+## 환경변수 설명
+
+| 변수 | 설명 | 기본값 |
+|------|------|--------|
+| `PORT` | 서버 포트 | `3000` |
+| `CORS_ORIGIN` | CORS 허용 origin | `*` |
+| `DB_HOST` | PostgreSQL 호스트 | `localhost` |
+| `DB_PORT` | PostgreSQL 포트 | `5432` |
+| `DB_NAME` | 데이터베이스 이름 | `panda_market` |
+| `DB_USER` | 데이터베이스 사용자 | `panda_user` |
+| `DB_PASSWORD` | 데이터베이스 비밀번호 | `panda1234` |
+| `NODE_ENV` | 실행 환경 | `development` |
