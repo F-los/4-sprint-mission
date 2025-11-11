@@ -1,6 +1,11 @@
 const http = require('http');
-const { Server } = require('socket.io');
-const { app, pool } = require('./api');
+const {
+  Server
+} = require('socket.io');
+const {
+  app,
+  pool
+} = require('./api');
 
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -45,7 +50,9 @@ io.on('connection', (socket) => {
       'UPDATE notifications SET is_read = TRUE, read_at = NOW() WHERE id = $1',
       [notificationId]
     );
-    socket.emit('marked_read', { notificationId });
+    socket.emit('marked_read', {
+      notificationId
+    });
   });
 
   socket.on('mark_all_read', async (userId) => {

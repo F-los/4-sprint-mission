@@ -1,6 +1,8 @@
 require('dotenv').config();
 const express = require('express');
-const { Pool } = require('pg');
+const {
+  Pool
+} = require('pg');
 
 const app = express();
 
@@ -18,7 +20,9 @@ app.use(express.json());
 // Products API - 인증 불필요
 app.get('/api/products', async (req, res) => {
   try {
-    const { limit = 10, offset = 0 } = req.query;
+    const {
+      limit = 10, offset = 0
+    } = req.query;
     const result = await pool.query(
       `SELECT p.*, u.nickname as seller_nickname,
               (SELECT COUNT(*) FROM product_likes WHERE product_id = p.id) as like_count,
@@ -30,15 +34,21 @@ app.get('/api/products', async (req, res) => {
        LIMIT $1 OFFSET $2`,
       [limit, offset]
     );
-    res.json({ products: result.rows });
+    res.json({
+      products: result.rows
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({
+      error: error.message
+    });
   }
 });
 
 app.get('/api/products/:id', async (req, res) => {
   try {
-    const { id } = req.params;
+    const {
+      id
+    } = req.params;
     const result = await pool.query(
       `SELECT p.*, u.nickname as seller_nickname,
               (SELECT COUNT(*) FROM product_likes WHERE product_id = p.id) as like_count,
@@ -50,19 +60,25 @@ app.get('/api/products/:id', async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Product not found' });
+      return res.status(404).json({
+        error: 'Product not found'
+      });
     }
 
     res.json(result.rows[0]);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({
+      error: error.message
+    });
   }
 });
 
 // Posts API - 인증 불필요
 app.get('/api/posts', async (req, res) => {
   try {
-    const { limit = 10, offset = 0 } = req.query;
+    const {
+      limit = 10, offset = 0
+    } = req.query;
     const result = await pool.query(
       `SELECT p.*, u.nickname as author_nickname,
               (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id) as like_count,
@@ -73,15 +89,21 @@ app.get('/api/posts', async (req, res) => {
        LIMIT $1 OFFSET $2`,
       [limit, offset]
     );
-    res.json({ posts: result.rows });
+    res.json({
+      posts: result.rows
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({
+      error: error.message
+    });
   }
 });
 
 app.get('/api/posts/:id', async (req, res) => {
   try {
-    const { id } = req.params;
+    const {
+      id
+    } = req.params;
     const result = await pool.query(
       `SELECT p.*, u.nickname as author_nickname,
               (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id) as like_count,
@@ -93,22 +115,32 @@ app.get('/api/posts/:id', async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Post not found' });
+      return res.status(404).json({
+        error: 'Post not found'
+      });
     }
 
     res.json(result.rows[0]);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({
+      error: error.message
+    });
   }
 });
 
 // Auth API
 app.post('/api/auth/register', async (req, res) => {
   try {
-    const { email, password, nickname } = req.body;
+    const {
+      email,
+      password,
+      nickname
+    } = req.body;
 
     if (!email || !password || !nickname) {
-      return res.status(400).json({ error: 'Missing required fields' });
+      return res.status(400).json({
+        error: 'Missing required fields'
+      });
     }
 
     const result = await pool.query(
@@ -118,21 +150,32 @@ app.post('/api/auth/register', async (req, res) => {
       [email, password, nickname] // Note: In production, hash the password!
     );
 
-    res.status(201).json({ user: result.rows[0] });
+    res.status(201).json({
+      user: result.rows[0]
+    });
   } catch (error) {
     if (error.code === '23505') { // Unique violation
-      return res.status(409).json({ error: 'Email or nickname already exists' });
+      return res.status(409).json({
+        error: 'Email or nickname already exists'
+      });
     }
-    res.status(500).json({ error: error.message });
+    res.status(500).json({
+      error: error.message
+    });
   }
 });
 
 app.post('/api/auth/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const {
+      email,
+      password
+    } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ error: 'Missing email or password' });
+      return res.status(400).json({
+        error: 'Missing email or password'
+      });
     }
 
     const result = await pool.query(
@@ -141,12 +184,19 @@ app.post('/api/auth/login', async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({
+        error: 'Invalid credentials'
+      });
     }
 
-    res.json({ user: result.rows[0], token: 'mock-jwt-token' });
+    res.json({
+      user: result.rows[0],
+      token: 'mock-jwt-token'
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({
+      error: error.message
+    });
   }
 });
 
@@ -155,7 +205,9 @@ const authMiddleware = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Unauthorized' });
+    return res.status(401).json({
+      error: 'Unauthorized'
+    });
   }
 
   const token = authHeader.substring(7);
@@ -165,17 +217,26 @@ const authMiddleware = async (req, res, next) => {
     req.userId = 1; // Mock user ID
     next();
   } else {
-    res.status(401).json({ error: 'Invalid token' });
+    res.status(401).json({
+      error: 'Invalid token'
+    });
   }
 };
 
 // Products API - 인증 필요
 app.post('/api/products', authMiddleware, async (req, res) => {
   try {
-    const { name, description, price, category_id } = req.body;
+    const {
+      name,
+      description,
+      price,
+      category_id
+    } = req.body;
 
     if (!name || !description || !price) {
-      return res.status(400).json({ error: 'Missing required fields' });
+      return res.status(400).json({
+        error: 'Missing required fields'
+      });
     }
 
     const result = await pool.query(
@@ -187,21 +248,25 @@ app.post('/api/products', authMiddleware, async (req, res) => {
 
     res.status(201).json(result.rows[0]);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({
+      error: error.message
+    });
   }
 });
 
 app.post('/api/products/:id/like', authMiddleware, async (req, res) => {
   try {
-    const { id } = req.params;
+    const {
+      id
+    } = req.params;
 
-    // Check if product exists
     const productCheck = await pool.query('SELECT id FROM products WHERE id = $1', [id]);
     if (productCheck.rows.length === 0) {
-      return res.status(404).json({ error: 'Product not found' });
+      return res.status(404).json({
+        error: 'Product not found'
+      });
     }
 
-    // Toggle like
     const existingLike = await pool.query(
       'SELECT * FROM product_likes WHERE user_id = $1 AND product_id = $2',
       [req.userId, id]
@@ -212,26 +277,38 @@ app.post('/api/products/:id/like', authMiddleware, async (req, res) => {
         'DELETE FROM product_likes WHERE user_id = $1 AND product_id = $2',
         [req.userId, id]
       );
-      res.json({ liked: false });
+      res.json({
+        liked: false
+      });
     } else {
       await pool.query(
         'INSERT INTO product_likes (user_id, product_id) VALUES ($1, $2)',
         [req.userId, id]
       );
-      res.json({ liked: true });
+      res.json({
+        liked: true
+      });
     }
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({
+      error: error.message
+    });
   }
 });
 
 // Posts API - 인증 필요
 app.post('/api/posts', authMiddleware, async (req, res) => {
   try {
-    const { title, content, board_id = 1 } = req.body;
+    const {
+      title,
+      content,
+      board_id = 1
+    } = req.body;
 
     if (!title || !content) {
-      return res.status(400).json({ error: 'Missing required fields' });
+      return res.status(400).json({
+        error: 'Missing required fields'
+      });
     }
 
     const result = await pool.query(
@@ -243,18 +320,24 @@ app.post('/api/posts', authMiddleware, async (req, res) => {
 
     res.status(201).json(result.rows[0]);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({
+      error: error.message
+    });
   }
 });
 
 app.post('/api/posts/:id/like', authMiddleware, async (req, res) => {
   try {
-    const { id } = req.params;
+    const {
+      id
+    } = req.params;
 
     // Check if post exists
     const postCheck = await pool.query('SELECT id FROM posts WHERE id = $1', [id]);
     if (postCheck.rows.length === 0) {
-      return res.status(404).json({ error: 'Post not found' });
+      return res.status(404).json({
+        error: 'Post not found'
+      });
     }
 
     // Toggle like
@@ -268,23 +351,34 @@ app.post('/api/posts/:id/like', authMiddleware, async (req, res) => {
         'DELETE FROM post_likes WHERE user_id = $1 AND post_id = $2',
         [req.userId, id]
       );
-      res.json({ liked: false });
+      res.json({
+        liked: false
+      });
     } else {
       await pool.query(
         'INSERT INTO post_likes (user_id, post_id) VALUES ($1, $2)',
         [req.userId, id]
       );
-      res.json({ liked: true });
+      res.json({
+        liked: true
+      });
     }
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({
+      error: error.message
+    });
   }
 });
 
 // Test notification endpoint
 app.post('/api/test-notification', async (req, res) => {
   try {
-    const { userId, type, title, message } = req.body;
+    const {
+      userId,
+      type,
+      title,
+      message
+    } = req.body;
 
     await pool.query(
       `INSERT INTO notifications (user_id, type, title, message)
@@ -292,10 +386,17 @@ app.post('/api/test-notification', async (req, res) => {
       [userId, type, title, message]
     );
 
-    res.json({ success: true });
+    res.json({
+      success: true
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({
+      error: error.message
+    });
   }
 });
 
-module.exports = { app, pool };
+module.exports = {
+  app,
+  pool
+};
