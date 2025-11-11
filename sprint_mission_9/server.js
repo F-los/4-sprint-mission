@@ -1,24 +1,13 @@
-require('dotenv').config();
-const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
-const { Pool } = require('pg');
+const { app, pool } = require('./api');
 
-const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: process.env.CORS_ORIGIN || '*',
     methods: ['GET', 'POST']
   }
-});
-
-const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT) || 5432,
-  database: process.env.DB_NAME || 'panda_market',
-  user: process.env.DB_USER || 'panda_user',
-  password: process.env.DB_PASSWORD || 'panda1234',
 });
 
 io.on('connection', (socket) => {
@@ -118,21 +107,6 @@ async function startListening() {
 
   console.log('PostgreSQL LISTEN 설정 완료');
 }
-
-app.use(express.static('public'));
-app.use(express.json());
-
-app.post('/api/test-notification', async (req, res) => {
-  const { userId, type, title, message } = req.body;
-
-  await pool.query(
-    `INSERT INTO notifications (user_id, type, title, message)
-     VALUES ($1, $2, $3, $4)`,
-    [userId, type, title, message]
-  );
-
-  res.json({ success: true });
-});
 
 const PORT = process.env.PORT || 3000;
 
