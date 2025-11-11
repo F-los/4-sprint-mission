@@ -139,3 +139,10 @@ notifications
 - notify_price_change() - 상품 가격 변경 시 알림
 - notify_post_comment() - 게시글 댓글 작성 시 알림
 - notify_product_comment() - 상품 댓글 작성 시 알림
+
+
+<img width="626" height="738" alt="스크린샷 2025-11-11 오후 1 50 07" src="https://github.com/user-attachments/assets/c46d191c-380a-4dc0-8536-c0b66228b5a8" />
+
+<img width="696" height="287" alt="스크린샷 2025-11-11 오후 1 50 27" src="https://github.com/user-attachments/assets/c2195e6d-ed39-4de0-9b5d-44ae953b053f" />
+
+### 서버가 종료되고 시작되어도 바로 열려있는 웹사이트에서 서버상태를 체크할수있습니다.
