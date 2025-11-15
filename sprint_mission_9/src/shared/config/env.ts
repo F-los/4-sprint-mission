@@ -10,6 +10,9 @@ const envSchema = z.object({
   DB_NAME: z.string().min(1),
   DB_USER: z.string().min(1),
   DB_PASSWORD: z.string().min(1),
+  DATABASE_URL: z.string().url(),
+  JWT_SECRET: z.string().min(1),
+  JWT_REFRESH_SECRET: z.string().min(1),
   CORS_ORIGIN: z.string().default('*'),
   NODE_ENV: z
     .enum(['development', 'production', 'test'])
@@ -27,6 +30,9 @@ function validateEnv(): Env {
       DB_NAME: process.env.DB_NAME,
       DB_USER: process.env.DB_USER,
       DB_PASSWORD: process.env.DB_PASSWORD,
+      DATABASE_URL: process.env.DATABASE_URL,
+      JWT_SECRET: process.env.JWT_SECRET,
+      JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET,
       CORS_ORIGIN: process.env.CORS_ORIGIN,
       NODE_ENV: process.env.NODE_ENV,
     });

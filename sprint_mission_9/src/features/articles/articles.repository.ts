@@ -1,12 +1,12 @@
 import { PrismaClient, Prisma } from '@prisma/client';
-import { ProductFilter, PaginationParams } from '../../shared/types/models';
-import { CreateProductInput, UpdateProductInput } from './products.dto';
+import { ArticleFilter, PaginationParams } from '../../shared/types/models';
+import { CreateArticleInput, UpdateArticleInput } from './articles.dto';
 
-export class ProductsRepository {
+export class ArticlesRepository {
   constructor(private prisma: PrismaClient) {}
 
-  async create(data: CreateProductInput) {
-    return this.prisma.product.create({
+  async create(data: CreateArticleInput) {
+    return this.prisma.article.create({
       data,
       include: {
         user: {
@@ -27,7 +27,7 @@ export class ProductsRepository {
   }
 
   async findById(id: number) {
-    return this.prisma.product.findUnique({
+    return this.prisma.article.findUnique({
       where: { id },
       include: {
         user: {
@@ -47,36 +47,30 @@ export class ProductsRepository {
     });
   }
 
-  async findMany(filter: ProductFilter & PaginationParams) {
+  async findMany(filter: ArticleFilter & PaginationParams) {
     const {
       page = 1,
       limit = 10,
       orderBy = 'createdAt',
       sortOrder = 'desc',
       userId,
-      minPrice,
-      maxPrice,
-      tags,
       search,
     } = filter;
 
     const skip = (page - 1) * limit;
 
-    const where: Prisma.ProductWhereInput = {
+    const where: Prisma.ArticleWhereInput = {
       ...(userId && { userId }),
-      ...(minPrice !== undefined && { price: { gte: minPrice } }),
-      ...(maxPrice !== undefined && { price: { ...{ lte: maxPrice } } }),
-      ...(tags && tags.length > 0 && { tags: { hasSome: tags } }),
       ...(search && {
         OR: [
-          { name: { contains: search, mode: 'insensitive' } },
-          { description: { contains: search, mode: 'insensitive' } },
+          { title: { contains: search, mode: 'insensitive' } },
+          { content: { contains: search, mode: 'insensitive' } },
         ],
       }),
     };
 
-    const [products, total] = await Promise.all([
-      this.prisma.product.findMany({
+    const [articles, total] = await Promise.all([
+      this.prisma.article.findMany({
         where,
         skip,
         take: limit,
@@ -97,11 +91,11 @@ export class ProductsRepository {
           },
         },
       }),
-      this.prisma.product.count({ where }),
+      this.prisma.article.count({ where }),
     ]);
 
     return {
-      data: products,
+      data: articles,
       total,
       page,
       limit,
@@ -109,8 +103,8 @@ export class ProductsRepository {
     };
   }
 
-  async update(id: number, data: UpdateProductInput) {
-    return this.prisma.product.update({
+  async update(id: number, data: UpdateArticleInput) {
+    return this.prisma.article.update({
       where: { id },
       data,
       include: {
@@ -132,44 +126,44 @@ export class ProductsRepository {
   }
 
   async delete(id: number) {
-    return this.prisma.product.delete({
+    return this.prisma.article.delete({
       where: { id },
     });
   }
 
-  async isOwner(productId: number, userId: number): Promise<boolean> {
-    const product = await this.prisma.product.findUnique({
-      where: { id: productId },
+  async isOwner(articleId: number, userId: number): Promise<boolean> {
+    const article = await this.prisma.article.findUnique({
+      where: { id: articleId },
       select: { userId: true },
     });
-    return product?.userId === userId;
+    return article?.userId === userId;
   }
 
   // Like operations
-  async checkLike(userId: number, productId: number): Promise<boolean> {
+  async checkLike(userId: number, articleId: number): Promise<boolean> {
     const like = await this.prisma.like.findFirst({
       where: {
         userId,
-        productId,
+        articleId,
       },
     });
     return like !== null;
   }
 
-  async addLike(userId: number, productId: number): Promise<void> {
+  async addLike(userId: number, articleId: number): Promise<void> {
     await this.prisma.like.create({
       data: {
         userId,
-        productId,
+        articleId,
       },
     });
   }
 
-  async removeLike(userId: number, productId: number): Promise<void> {
+  async removeLike(userId: number, articleId: number): Promise<void> {
     await this.prisma.like.deleteMany({
       where: {
         userId,
-        productId,
+        articleId,
       },
     });
   }
