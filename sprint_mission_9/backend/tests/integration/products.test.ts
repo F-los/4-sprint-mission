@@ -1,33 +1,37 @@
 import request from 'supertest';
-import { app, pool } from '../../src/app';
+import { app, prisma } from '../../src/app';
 
 describe('Products API', () => {
   afterAll(async () => {
-    await pool.end();
+    await prisma.$disconnect();
   });
 
   describe('인증 불필요 - GET /api/products', () => {
     it('should return list of products', async () => {
       const response = await request(app).get('/api/products').expect(200);
 
-      expect(response.body).toHaveProperty('products');
-      expect(Array.isArray(response.body.products)).toBe(true);
+      expect(response.body).toHaveProperty('data');
+      expect(Array.isArray(response.body.data)).toBe(true);
     });
 
-    it('should support pagination with limit and offset', async () => {
-      const response = await request(app).get('/api/products?limit=2&offset=0').expect(200);
+    it('should support pagination with limit and page', async () => {
+      const response = await request(app).get('/api/products?limit=2&page=1').expect(200);
 
-      expect(response.body.products.length).toBeLessThanOrEqual(2);
+      expect(response.body.data.length).toBeLessThanOrEqual(2);
+      expect(response.body).toHaveProperty('total');
+      expect(response.body).toHaveProperty('page');
+      expect(response.body).toHaveProperty('totalPages');
     });
 
-    it('should include seller nickname and counts', async () => {
+    it('should include user info and counts', async () => {
       const response = await request(app).get('/api/products').expect(200);
 
-      if (response.body.products.length > 0) {
-        const product = response.body.products[0];
-        expect(product).toHaveProperty('seller_nickname');
-        expect(product).toHaveProperty('like_count');
-        expect(product).toHaveProperty('comment_count');
+      if (response.body.data.length > 0) {
+        const product = response.body.data[0];
+        expect(product).toHaveProperty('user');
+        expect(product.user).toHaveProperty('nickname');
+        expect(product).toHaveProperty('likeCount');
+        expect(product).toHaveProperty('commentCount');
       }
     });
   });
@@ -48,12 +52,13 @@ describe('Products API', () => {
       expect(response.body.error).toBe('Product not found');
     });
 
-    it('should include seller and stats', async () => {
+    it('should include user info and stats', async () => {
       const response = await request(app).get('/api/products/1').expect(200);
 
-      expect(response.body).toHaveProperty('seller_nickname');
-      expect(response.body).toHaveProperty('like_count');
-      expect(response.body).toHaveProperty('comment_count');
+      expect(response.body).toHaveProperty('user');
+      expect(response.body.user).toHaveProperty('nickname');
+      expect(response.body).toHaveProperty('likeCount');
+      expect(response.body).toHaveProperty('commentCount');
     });
   });
 
@@ -65,7 +70,8 @@ describe('Products API', () => {
         name: 'Test Product',
         description: 'Test Description',
         price: 10000,
-        category_id: 1,
+        tags: ['test'],
+        userId: 1,
       };
 
       const response = await request(app)
