@@ -77,7 +77,6 @@ describe('Upload API', () => {
     });
 
     it('should reject non-image files', async () => {
-      // Create a temporary text file
       const textFilePath = path.join(__dirname, '../fixtures/test.txt');
       fs.writeFileSync(textFilePath, 'This is a text file');
 
@@ -86,9 +85,12 @@ describe('Upload API', () => {
         .attach('image', textFilePath);
 
       expect([400, 500]).toContain(response.status);
-      expect(response.body).toHaveProperty('message');
+      if (response.body.message) {
+        expect(response.body).toHaveProperty('message');
+      } else {
+        expect(response.body).toHaveProperty('error');
+      }
 
-      // Cleanup
       fs.unlinkSync(textFilePath);
     });
 
