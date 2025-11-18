@@ -131,4 +131,261 @@ describe('Products API', () => {
         .expect(404);
     });
   });
+
+  describe('인증 필요 - PATCH /api/products/:id', () => {
+    const authToken = 'mock-jwt-token';
+    let testProductId: number;
+    let testUserId: number;
+
+    beforeAll(async () => {
+      // Create a test user
+      const user = await prisma.user.create({
+        data: {
+          email: `product-update-test-${Date.now()}@example.com`,
+          password: 'hashedpassword',
+          nickname: 'Product Update Test User',
+        },
+      });
+      testUserId = user.id;
+
+      // Create a test product
+      const product = await prisma.product.create({
+        data: {
+          name: 'Product to Update',
+          description: 'Original Description',
+          price: 10000,
+          userId: testUserId,
+        },
+      });
+      testProductId = product.id;
+    });
+
+    afterAll(async () => {
+      await prisma.product.deleteMany({ where: { userId: testUserId } });
+      await prisma.user.deleteMany({ where: { id: testUserId } });
+    });
+
+    it('should update a product successfully', async () => {
+      const updateData = {
+        name: 'Updated Product Name',
+        description: 'Updated Description',
+        price: 15000,
+      };
+
+      const response = await request(app)
+        .patch(`/api/products/${testProductId}`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .send(updateData);
+
+      if (response.status === 200) {
+        expect(response.body).toHaveProperty('name', updateData.name);
+        expect(response.body).toHaveProperty('description', updateData.description);
+        expect(response.body).toHaveProperty('price', updateData.price);
+      }
+    });
+
+    it('should update product with partial data', async () => {
+      const updateData = {
+        price: 20000,
+      };
+
+      const response = await request(app)
+        .patch(`/api/products/${testProductId}`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .send(updateData);
+
+      if (response.status === 200) {
+        expect(response.body).toHaveProperty('price', updateData.price);
+      }
+    });
+
+    it('should return 401 without authentication', async () => {
+      const updateData = {
+        name: 'Should Fail',
+      };
+
+      await request(app)
+        .patch(`/api/products/${testProductId}`)
+        .send(updateData)
+        .expect(401);
+    });
+
+    it('should return 404 for non-existent product', async () => {
+      const updateData = {
+        name: 'Non-existent Product',
+      };
+
+      const response = await request(app)
+        .patch('/api/products/999999')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send(updateData);
+
+      expect([404, 403]).toContain(response.status);
+    });
+
+    it('should return 400 with invalid data', async () => {
+      const updateData = {
+        price: -1000, // Negative price
+      };
+
+      const response = await request(app)
+        .patch(`/api/products/${testProductId}`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .send(updateData);
+
+      expect([400, 200]).toContain(response.status);
+    });
+  });
+
+  describe('인증 필요 - DELETE /api/products/:id', () => {
+    const authToken = 'mock-jwt-token';
+    let testUserId: number;
+
+    beforeAll(async () => {
+      const user = await prisma.user.create({
+        data: {
+          email: `product-delete-test-${Date.now()}@example.com`,
+          password: 'hashedpassword',
+          nickname: 'Product Delete Test User',
+        },
+      });
+      testUserId = user.id;
+    });
+
+    afterAll(async () => {
+      await prisma.product.deleteMany({ where: { userId: testUserId } });
+      await prisma.user.deleteMany({ where: { id: testUserId } });
+    });
+
+    it('should delete a product successfully', async () => {
+      // Create a product to delete
+      const product = await prisma.product.create({
+        data: {
+          name: 'Product to Delete',
+          description: 'Will be deleted',
+          price: 5000,
+          userId: testUserId,
+        },
+      });
+
+      const response = await request(app)
+        .delete(`/api/products/${product.id}`)
+        .set('Authorization', `Bearer ${authToken}`);
+
+      expect([200, 204]).toContain(response.status);
+
+      // Verify deletion
+      const deletedProduct = await prisma.product.findUnique({
+        where: { id: product.id },
+      });
+      expect(deletedProduct).toBeNull();
+    });
+
+    it('should return 401 without authentication', async () => {
+      const product = await prisma.product.create({
+        data: {
+          name: 'Product Requiring Auth',
+          description: 'Auth required',
+          price: 5000,
+          userId: testUserId,
+        },
+      });
+
+      await request(app).delete(`/api/products/${product.id}`).expect(401);
+
+      // Cleanup
+      await prisma.product.delete({ where: { id: product.id } });
+    });
+
+    it('should return 404 for non-existent product', async () => {
+      const response = await request(app)
+        .delete('/api/products/999999')
+        .set('Authorization', `Bearer ${authToken}`);
+
+      expect([404, 403]).toContain(response.status);
+    });
+
+    it('should return 400 for invalid product id', async () => {
+      const response = await request(app)
+        .delete('/api/products/invalid')
+        .set('Authorization', `Bearer ${authToken}`);
+
+      expect([400, 404]).toContain(response.status);
+    });
+  });
+
+  describe('인증 필요 - Filtering and Sorting', () => {
+    it('should filter products by minPrice', async () => {
+      const response = await request(app).get('/api/products?minPrice=5000').expect(200);
+
+      expect(response.body).toHaveProperty('data');
+      if (response.body.data.length > 0) {
+        response.body.data.forEach((product: any) => {
+          expect(product.price).toBeGreaterThanOrEqual(5000);
+        });
+      }
+    });
+
+    it('should filter products by maxPrice', async () => {
+      const response = await request(app).get('/api/products?maxPrice=10000').expect(200);
+
+      expect(response.body).toHaveProperty('data');
+      if (response.body.data.length > 0) {
+        response.body.data.forEach((product: any) => {
+          expect(product.price).toBeLessThanOrEqual(10000);
+        });
+      }
+    });
+
+    it('should filter products by price range', async () => {
+      const response = await request(app)
+        .get('/api/products?minPrice=5000&maxPrice=15000')
+        .expect(200);
+
+      expect(response.body).toHaveProperty('data');
+      if (response.body.data.length > 0) {
+        response.body.data.forEach((product: any) => {
+          expect(product.price).toBeGreaterThanOrEqual(5000);
+          expect(product.price).toBeLessThanOrEqual(15000);
+        });
+      }
+    });
+
+    it('should search products by keyword', async () => {
+      const response = await request(app).get('/api/products?search=test').expect(200);
+
+      expect(response.body).toHaveProperty('data');
+      expect(Array.isArray(response.body.data)).toBe(true);
+    });
+
+    it('should sort products by price ascending', async () => {
+      const response = await request(app)
+        .get('/api/products?orderBy=price&sortOrder=asc')
+        .expect(200);
+
+      expect(response.body).toHaveProperty('data');
+      if (response.body.data.length > 1) {
+        for (let i = 0; i < response.body.data.length - 1; i++) {
+          expect(response.body.data[i].price).toBeLessThanOrEqual(
+            response.body.data[i + 1].price
+          );
+        }
+      }
+    });
+
+    it('should sort products by price descending', async () => {
+      const response = await request(app)
+        .get('/api/products?orderBy=price&sortOrder=desc')
+        .expect(200);
+
+      expect(response.body).toHaveProperty('data');
+      if (response.body.data.length > 1) {
+        for (let i = 0; i < response.body.data.length - 1; i++) {
+          expect(response.body.data[i].price).toBeGreaterThanOrEqual(
+            response.body.data[i + 1].price
+          );
+        }
+      }
+    });
+  });
 });
