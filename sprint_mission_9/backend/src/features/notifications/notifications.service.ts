@@ -1,14 +1,19 @@
 import { NotificationsRepository } from './notifications.repository';
-import { Notification, CreateNotificationDto } from './notifications.types';
 
 export class NotificationsService {
   constructor(private repository: NotificationsRepository) {}
 
-  async createNotification(data: CreateNotificationDto): Promise<Notification> {
+  async createNotification(data: {
+    userId: number;
+    type: string;
+    message: string;
+    productId?: number;
+    articleId?: number;
+  }) {
     return await this.repository.create(data);
   }
 
-  async getUserNotifications(userId: number, limit?: number): Promise<Notification[]> {
+  async getUserNotifications(userId: number, limit?: number) {
     return await this.repository.findByUserId(userId, limit);
   }
 

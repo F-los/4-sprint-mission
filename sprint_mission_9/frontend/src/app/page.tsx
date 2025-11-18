@@ -4,12 +4,15 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { productAPI, authAPI, articleAPI } from '@/lib/api';
 import { User, Product, Article } from '@/types';
+import { useWebSocket } from '@/hooks/useWebSocket';
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [articles, setArticles] = useState<Article[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const { connected, notifications, unreadCount, getNotifications } = useWebSocket(user?.id || null);
 
   const loadData = useCallback(async () => {
     try {
@@ -26,11 +29,11 @@ export default function Home() {
 
       // 상품 목록 로드
       const productsResponse = await productAPI.getAll({ limit: 6 });
-      setProducts(productsResponse.data.list || []);
+      setProducts(productsResponse.data.data || productsResponse.data.list || productsResponse.data || []);
 
       // 게시글 목록 로드
       const articlesResponse = await articleAPI.getAll({ limit: 6 });
-      setArticles(articlesResponse.data.list || []);
+      setArticles(articlesResponse.data.data || articlesResponse.data.list || articlesResponse.data || []);
     } catch (error) {
       console.error('데이터 로드 실패:', error);
     } finally {
@@ -52,7 +55,7 @@ export default function Home() {
       await productAPI.toggleLike(productId);
       // 상품 목록 새로고침
       const response = await productAPI.getAll({ limit: 6 });
-      setProducts(response.data.list || []);
+      setProducts(response.data.data || response.data.list || response.data || []);
     } catch (error) {
       console.error('좋아요 실패:', error);
     }
@@ -68,7 +71,7 @@ export default function Home() {
       await articleAPI.toggleLike(articleId);
       // 게시글 목록 새로고침
       const articlesResponse = await articleAPI.getAll({ limit: 6 });
-      setArticles(articlesResponse.data.list || []);
+      setArticles(articlesResponse.data.data || articlesResponse.data.list || articlesResponse.data || []);
     } catch (error) {
       console.error('좋아요 실패:', error);
     }
@@ -95,7 +98,7 @@ export default function Home() {
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <h1 className="text-xl font-bold text-gray-900">Sprint Mission 5</h1>
+            <h1 className="text-xl font-bold text-gray-900">Sprint Mission 9</h1>
             <div className="flex items-center space-x-4">
               {user ? (
                 <div className="flex items-center space-x-4">
@@ -331,137 +334,102 @@ export default function Home() {
             )}
           </div>
 
-          {/* 기능 테스트 안내 */}
-          <div className="mt-12 bg-blue-50 border border-blue-200 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-blue-900 mb-3">🧪 완벽 구현된 기능들 (100% 테스트 완료)</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-blue-800">
-              
-              {/* 상품 기능 */}
-              <div className="bg-white p-4 rounded-lg border border-blue-200">
-                <h4 className="font-semibold mb-3 text-green-700">🛍️ 상품 관리 시스템</h4>
-                <ul className="space-y-1 text-sm">
-                  <li>✅ 상품 목록 조회 (페이지네이션)</li>
-                  <li>✅ 상품 등록/수정/삭제 (본인만)</li>
-                  <li>✅ 상품 상세 페이지</li>
-                  <li>✅ 상품 좋아요/취소 기능</li>
-                  <li>✅ 상품 댓글 작성/삭제</li>
-                  <li>✅ 댓글 작성자 표시</li>
-                  <li>✅ 이미지 업로드 (URL)</li>
-                  <li>✅ 태그 시스템</li>
-                </ul>
+          {/* WebSocket 실시간 알림 UI */}
+          {user && (
+            <div className="mt-12 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-purple-900">🔔 실시간 알림 (WebSocket)</h3>
+                {unreadCount > 0 && (
+                  <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                    {unreadCount}개
+                  </span>
+                )}
               </div>
 
-              {/* 게시글 기능 */}
-              <div className="bg-white p-4 rounded-lg border border-blue-200">
-                <h4 className="font-semibold mb-3 text-purple-700">📝 게시글 시스템</h4>
-                <ul className="space-y-1 text-sm">
-                  <li>✅ 게시글 목록/상세 조회</li>
-                  <li>✅ 게시글 작성/수정/삭제</li>
-                  <li>✅ 게시글 좋아요/취소</li>
-                  <li>✅ 게시글 댓글 시스템</li>
-                  <li>✅ 댓글 작성자 표시</li>
-                  <li>✅ 댓글 삭제 (본인만)</li>
-                  <li>✅ 홈페이지 통합 표시</li>
-                  <li>✅ 권한 기반 수정/삭제</li>
-                </ul>
+              <div className="bg-white rounded-lg p-4 mb-4 border border-purple-100">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    <div className={`w-3 h-3 rounded-full ${connected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                    <span className="text-sm font-medium text-gray-700">
+                      연결 상태: {connected ? '활성' : '비활성'}
+                    </span>
+                  </div>
+                  <span className="text-xs text-gray-500">
+                    {connected ? 'WebSocket 서버에 연결됨' : 'WebSocket 연결 대기 중'}
+                  </span>
+                </div>
+
+                <div className="text-sm text-gray-600">
+                  <p>실시간으로 알림을 받을 수 있습니다:</p>
+                  <ul className="mt-2 space-y-1 text-xs">
+                    <li>• 내 게시글/상품에 댓글이 달렸을 때</li>
+                    <li>• 내 게시글/상품에 좋아요가 눌렸을 때</li>
+                    <li>• 내 댓글에 답글이 달렸을 때</li>
+                  </ul>
+                </div>
               </div>
 
-              {/* 사용자 관리 */}
-              <div className="bg-white p-4 rounded-lg border border-blue-200">
-                <h4 className="font-semibold mb-3 text-blue-700">👤 사용자 관리</h4>
-                <ul className="space-y-1 text-sm">
-                  <li>✅ 회원가입/로그인/로그아웃</li>
-                  <li>✅ 사용자 정보 조회/수정</li>
-                  <li>✅ 비밀번호 변경</li>
-                  <li>✅ 프로필 이미지 설정</li>
-                  <li>✅ 내 정보 관리 페이지</li>
-                  <li>✅ 마이페이지 (활동 현황)</li>
-                  <li>✅ 내가 등록한 상품 목록</li>
-                  <li>✅ 내가 작성한 게시글 목록</li>
-                </ul>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <h4 className="text-sm font-semibold text-gray-700">최근 알림</h4>
+                  <button
+                    onClick={getNotifications}
+                    className="text-xs text-purple-600 hover:text-purple-800"
+                  >
+                    새로고침
+                  </button>
+                </div>
+
+                {notifications.length > 0 ? (
+                  notifications.slice(0, 5).map((notification) => (
+                    <div
+                      key={notification.id}
+                      className={`${
+                        notification.isRead ? 'bg-gray-50' : 'bg-white'
+                      } rounded-lg p-3 border border-gray-200 hover:border-blue-300 transition-colors cursor-pointer`}
+                    >
+                      <div className="flex items-start space-x-3">
+                        <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                          <span className="text-sm">
+                            {notification.type === 'comment' ? '💬' :
+                             notification.type === 'like' ? '❤️' : '📝'}
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-sm ${notification.isRead ? 'text-gray-600' : 'text-gray-900'}`}>
+                            {notification.relatedUser && (
+                              <span className="font-medium">{notification.relatedUser.nickname}</span>
+                            )}
+                            {notification.message}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            {new Date(notification.createdAt).toLocaleString('ko-KR')}
+                            {notification.isRead && ' (읽음)'}
+                          </p>
+                        </div>
+                        {!notification.isRead && (
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <p className="text-sm">아직 알림이 없습니다.</p>
+                    <p className="text-xs mt-1">활동이 생기면 실시간으로 알림을 받을 수 있습니다.</p>
+                  </div>
+                )}
               </div>
 
-              {/* 보안 & 인증 */}
-              <div className="bg-white p-4 rounded-lg border border-blue-200">
-                <h4 className="font-semibold mb-3 text-red-700">🔒 보안 & 인증</h4>
-                <ul className="space-y-1 text-sm">
-                  <li>✅ JWT 토큰 기반 인증</li>
-                  <li>✅ 자동 토큰 갱신 (Refresh)</li>
-                  <li>✅ 비밀번호 암호화 (bcrypt)</li>
-                  <li>✅ 비밀번호 노출 방지</li>
-                  <li>✅ 권한 기반 접근 제어</li>
-                  <li>✅ 본인만 수정/삭제 가능</li>
-                  <li>✅ 로그인 필수 기능 보호</li>
-                  <li>✅ CORS 및 보안 헤더</li>
-                </ul>
-              </div>
-
-              {/* UI/UX 기능 */}
-              <div className="bg-white p-4 rounded-lg border border-blue-200">
-                <h4 className="font-semibold mb-3 text-indigo-700">🎨 UI/UX 기능</h4>
-                <ul className="space-y-1 text-sm">
-                  <li>✅ 반응형 디자인 (모바일 대응)</li>
-                  <li>✅ 로딩 상태 표시</li>
-                  <li>✅ 에러 처리 및 알림</li>
-                  <li>✅ 실시간 상태 업데이트</li>
-                  <li>✅ 사용자 친화적 네비게이션</li>
-                  <li>✅ 빈 상태 처리</li>
-                  <li>✅ 폼 유효성 검사</li>
-                  <li>✅ 직관적인 버튼 상태</li>
-                </ul>
-              </div>
-
-              {/* API & 데이터 */}
-              <div className="bg-white p-4 rounded-lg border border-blue-200">
-                <h4 className="font-semibold mb-3 text-orange-700">⚡ API & 데이터</h4>
-                <ul className="space-y-1 text-sm">
-                  <li>✅ RESTful API 설계</li>
-                  <li>✅ Prisma ORM 데이터베이스</li>
-                  <li>✅ TypeScript 타입 안전성</li>
-                  <li>✅ 에러 핸들링 미들웨어</li>
-                  <li>✅ 요청/응답 유효성 검증</li>
-                  <li>✅ 관계형 데이터 모델링</li>
-                  <li>✅ 페이지네이션 지원</li>
-                  <li>✅ 실시간 데이터 동기화</li>
-                </ul>
-              </div>
+              {notifications.length > 5 && (
+                <div className="mt-4 text-center">
+                  <button className="text-sm text-purple-600 hover:text-purple-800 font-medium">
+                    모든 알림 보기 ({notifications.length}개) →
+                  </button>
+                </div>
+              )}
             </div>
-
-            {/* 요약 통계 */}
-            <div className="mt-6 bg-gradient-to-r from-green-100 to-blue-100 p-4 rounded-lg border-2 border-green-300">
-              <h4 className="font-bold text-green-800 mb-2">📊 구현 완료 통계</h4>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                <div>
-                  <div className="text-2xl font-bold text-green-600">15+</div>
-                  <div className="text-xs text-green-700">API 엔드포인트</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-blue-600">100%</div>
-                  <div className="text-xs text-blue-700">기능 완성도</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-purple-600">10+</div>
-                  <div className="text-xs text-purple-700">페이지 구현</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-orange-600">5+</div>
-                  <div className="text-xs text-orange-700">보안 계층</div>
-                </div>
-              </div>
-            </div>
-
-            {/* 테스트 가이드 */}
-            <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <h4 className="font-semibold text-yellow-800 mb-2">🚀 테스트 추천 순서</h4>
-              <ol className="text-sm text-yellow-700 space-y-1">
-                <li><strong>1.</strong> 회원가입 → 로그인하여 토큰 인증 확인</li>
-                <li><strong>2.</strong> &quot;내 정보&quot; 페이지에서 프로필 수정/비밀번호 변경</li>
-                <li><strong>3.</strong> 상품 등록 → 본인 상품 수정/삭제 → 댓글 작성</li>
-                <li><strong>4.</strong> 게시글 작성 → 좋아요 → 댓글 시스템 테스트</li>
-                <li><strong>5.</strong> 마이페이지에서 내 활동 현황 확인</li>
-              </ol>
-            </div>
-          </div>
+          )}
         </div>
       </main>
     </div>

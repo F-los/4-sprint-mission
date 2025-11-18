@@ -1,6 +1,6 @@
-# Sprint Mission 9 - 판다마켓
+# Sprint Mission 9
 
-sprint_mission_5의 모든 기능을 Featured Architecture + Prisma로 재구성한 풀스택 프로젝트입니다.
+Featured Architecture + Prisma 기반 풀스택 프로젝트입니다.
 
 ## 📁 프로젝트 구조
 
@@ -89,6 +89,13 @@ npm run dev
 - 상품/게시글 댓글
 - CRUD
 
+## 🔔 WebSocket 실시간 기능
+
+### 실시간 알림
+- WebSocket을 통한 실시간 알림 수신
+- 댓글, 좋아요 등의 이벤트 실시간 업데이트
+- 읽음/안읽음 상태 관리
+
 ## 🛠️ 기술 스택
 
 ### Backend
@@ -135,16 +142,48 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:9999/api
 - [Backend 문서](./backend/README.md)
 - [Frontend 문서](./frontend/README.md)
 
-## 🔄 Migration from sprint_mission_5
-
-- ✅ Layered → Featured Architecture
-- ✅ Raw SQL → Prisma ORM
-- ✅ DTO + Service + Repository 패턴 적용
-- ✅ TypeScript 타입 안정성 강화
-- ✅ JWT 인증 통합
 
 ## 📞 포트 정보
 
 - **Backend API**: 9999
 - **Frontend**: 3000
 - **PostgreSQL**: 5432
+
+## 테스트
+
+Integration Tests (통합 테스트)
+위치: tests/integration/
+테스트 대상: API 엔드포인트 (전체 요청-응답 흐름)
+범위: Controller → Service → Repository → Database (전체 스택)
+방법: supertest로 실제 HTTP 요청을 보내서 테스트
+예시:
+```
+// tests/integration/articles.test.ts
+it('should create an article', async () => {
+  const response = await request(app)
+    .post('/api/articles')
+    .set('Authorization', `Bearer ${authToken}`)
+    .send({ title: 'Test', content: 'Content' })
+    .expect(201);
+});
+```
+
+Unit Tests (단위 테스트)
+위치: tests/unit/
+테스트 대상: 개별 함수/메서드 (독립적으로)
+범위: Service 또는 Repository의 특정 메서드만
+방법: Mock을 사용해서 의존성 제거
+예시:
+```
+// tests/unit/comments.service.test.ts
+it('should create a comment', async () => {
+  const mockRepository = {
+    create: jest.fn().mockResolvedValue(mockComment)
+  };
+  const service = new CommentsService(mockRepository);
+  
+  const result = await service.createComment(data);
+  
+  expect(mockRepository.create).toHaveBeenCalledWith(data);
+});
+```
