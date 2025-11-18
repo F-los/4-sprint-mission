@@ -194,7 +194,7 @@ describe('NotificationsRepository', () => {
     it('should find notifications with custom limit', async () => {
       const userId = 2;
       const limit = 10;
-      const mockNotifications = [];
+      const mockNotifications: unknown[] = [];
 
       const mockQueryResult: QueryResult = {
         rows: mockNotifications,

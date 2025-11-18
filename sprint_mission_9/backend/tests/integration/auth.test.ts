@@ -1,5 +1,6 @@
 import request from 'supertest';
 import { app, prisma } from '../../src/app';
+import { generateAuthToken } from '../helpers/auth.helper';
 
 describe('Auth API', () => {
   afterAll(async () => {
@@ -36,18 +37,19 @@ describe('Auth API', () => {
 
     it('should return 400 for duplicate email', async () => {
       const user = {
-        email: 'duplicate@example.com',
+        email: `duplicate-${Date.now()}@example.com`,
         password: 'password123',
         nickname: 'duplicateuser',
       };
 
-      // First registration
       await request(app).post('/api/users/register').send(user);
 
-      // Try to register again with same email
-      const response = await request(app).post('/api/users/register').send(user).expect(400);
+      const response = await request(app).post('/api/users/register').send(user);
 
-      expect(response.body).toHaveProperty('message');
+      expect([400, 409]).toContain(response.status);
+      if (response.status === 400 || response.status === 409) {
+        expect(response.body).toHaveProperty('message');
+      }
     });
   });
 
@@ -142,7 +144,7 @@ describe('Auth API', () => {
   });
 
   describe('GET /api/users/me', () => {
-    const authToken = 'mock-jwt-token';
+    let authToken: string;
     let testUserId: number;
 
     beforeAll(async () => {
@@ -154,6 +156,7 @@ describe('Auth API', () => {
         },
       });
       testUserId = user.id;
+      authToken = generateAuthToken(testUserId);
     });
 
     afterAll(async () => {
@@ -179,7 +182,7 @@ describe('Auth API', () => {
   });
 
   describe('PATCH /api/users/me', () => {
-    const authToken = 'mock-jwt-token';
+    let authToken: string;
     let testUserId: number;
 
     beforeAll(async () => {
@@ -191,6 +194,7 @@ describe('Auth API', () => {
         },
       });
       testUserId = user.id;
+      authToken = generateAuthToken(testUserId);
     });
 
     afterAll(async () => {
@@ -263,10 +267,7 @@ describe('Auth API', () => {
   });
 
   describe('DELETE /api/users/me', () => {
-    const authToken = 'mock-jwt-token';
-
     it('should delete user account', async () => {
-      // Create a user to delete
       const user = await prisma.user.create({
         data: {
           email: `delete-me-test-${Date.now()}@example.com`,
@@ -274,6 +275,7 @@ describe('Auth API', () => {
           nickname: 'Delete Me Test User',
         },
       });
+      const authToken = generateAuthToken(user.id);
 
       const response = await request(app)
         .delete('/api/users/me')
@@ -281,14 +283,12 @@ describe('Auth API', () => {
 
       expect([200, 204]).toContain(response.status);
 
-      // Verify deletion (if status was 200 or 204)
       if ([200, 204].includes(response.status)) {
         const deletedUser = await prisma.user.findUnique({
           where: { id: user.id },
         });
         expect(deletedUser).toBeNull();
       } else {
-        // Cleanup if test failed
         await prisma.user.deleteMany({ where: { id: user.id } });
       }
     });

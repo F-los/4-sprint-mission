@@ -22,7 +22,7 @@ app.use('/api/products', productsRouter);
 app.use('/api/articles', articlesRouter);
 app.use('/api/comments', commentsRouter);
 app.use('/api/users', usersRouter);
-app.use('/api', uploadRouter);
+app.use('/api/upload', uploadRouter);
 
 // Health check
 app.get('/health', (req, res) => {

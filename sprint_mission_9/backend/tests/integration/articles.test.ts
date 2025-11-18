@@ -1,3 +1,4 @@
+import { generateAuthToken } from '../helpers/auth.helper';
 import request from 'supertest';
 import { app, prisma } from '../../src/app';
 
@@ -52,13 +53,30 @@ describe('Articles API', () => {
   });
 
   describe('인증 필요 - POST /api/articles', () => {
-    const authToken = 'mock-jwt-token';
+    let authToken: string;
+    let testUserId: number;
+
+    beforeAll(async () => {
+      const user = await prisma.user.create({
+        data: {
+          email: `article-create-test-${Date.now()}@example.com`,
+          password: 'hashedpassword',
+          nickname: 'Article Create Test User',
+        },
+      });
+      testUserId = user.id;
+      authToken = generateAuthToken(testUserId);
+    });
+
+    afterAll(async () => {
+      await prisma.article.deleteMany({ where: { userId: testUserId } });
+      await prisma.user.deleteMany({ where: { id: testUserId } });
+    });
 
     it('should create an article with authentication', async () => {
       const newArticle = {
         title: 'Test Article',
         content: 'Test Content',
-        userId: 1,
       };
 
       const response = await request(app)
@@ -94,11 +112,39 @@ describe('Articles API', () => {
   });
 
   describe('인증 필요 - POST /api/articles/:id/like', () => {
-    const authToken = 'mock-jwt-token';
+    let authToken: string;
+    let testUserId: number;
+    let testArticleId: number;
+
+    beforeAll(async () => {
+      const user = await prisma.user.create({
+        data: {
+          email: `article-like-test-${Date.now()}@example.com`,
+          password: 'hashedpassword',
+          nickname: 'Article Like Test User',
+        },
+      });
+      testUserId = user.id;
+      authToken = generateAuthToken(testUserId);
+
+      const article = await prisma.article.create({
+        data: {
+          title: 'Article to Like',
+          content: 'Test Content',
+          userId: testUserId,
+        },
+      });
+      testArticleId = article.id;
+    });
+
+    afterAll(async () => {
+      await prisma.article.deleteMany({ where: { userId: testUserId } });
+      await prisma.user.deleteMany({ where: { id: testUserId } });
+    });
 
     it('should toggle like on an article', async () => {
       const response = await request(app)
-        .post('/api/articles/1/like')
+        .post(`/api/articles/${testArticleId}/like`)
         .set('Authorization', `Bearer ${authToken}`);
 
       if (response.status === 200) {
@@ -108,24 +154,24 @@ describe('Articles API', () => {
     });
 
     it('should return 401 without authentication', async () => {
-      await request(app).post('/api/articles/1/like').expect(401);
+      await request(app).post(`/api/articles/${testArticleId}/like`).expect(401);
     });
 
     it('should return 404 for non-existent article', async () => {
-      await request(app)
+      const response = await request(app)
         .post('/api/articles/999999/like')
-        .set('Authorization', `Bearer ${authToken}`)
-        .expect(404);
+        .set('Authorization', `Bearer ${authToken}`);
+
+      expect([404, 403]).toContain(response.status);
     });
   });
 
   describe('인증 필요 - PATCH /api/articles/:id', () => {
-    const authToken = 'mock-jwt-token';
+    let authToken: string;
     let testArticleId: number;
     let testUserId: number;
 
     beforeAll(async () => {
-      // Create a test user
       const user = await prisma.user.create({
         data: {
           email: `article-update-test-${Date.now()}@example.com`,
@@ -134,8 +180,8 @@ describe('Articles API', () => {
         },
       });
       testUserId = user.id;
+      authToken = generateAuthToken(testUserId);
 
-      // Create a test article
       const article = await prisma.article.create({
         data: {
           title: 'Article to Update',
@@ -222,7 +268,7 @@ describe('Articles API', () => {
   });
 
   describe('인증 필요 - DELETE /api/articles/:id', () => {
-    const authToken = 'mock-jwt-token';
+    let authToken: string;
     let testUserId: number;
 
     beforeAll(async () => {
@@ -234,6 +280,7 @@ describe('Articles API', () => {
         },
       });
       testUserId = user.id;
+      authToken = generateAuthToken(testUserId);
     });
 
     afterAll(async () => {

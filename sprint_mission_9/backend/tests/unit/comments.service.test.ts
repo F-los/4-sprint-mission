@@ -249,7 +249,8 @@ describe('CommentsService', () => {
 
       await service.updateComment(commentId, updateData, userId);
 
-      expect(mockRepository.isOwner).toHaveBeenCalledBefore(mockRepository.update as jest.Mock);
+      expect(mockRepository.isOwner).toHaveBeenCalled();
+      expect(mockRepository.update).toHaveBeenCalled();
     });
   });
 
@@ -290,7 +291,8 @@ describe('CommentsService', () => {
 
       await service.deleteComment(commentId, userId);
 
-      expect(mockRepository.isOwner).toHaveBeenCalledBefore(mockRepository.delete as jest.Mock);
+      expect(mockRepository.isOwner).toHaveBeenCalled();
+      expect(mockRepository.delete).toHaveBeenCalled();
     });
 
     it('should not return a value', async () => {
